@@ -10,7 +10,6 @@ import co.com.crediya.usecase.loanapplication.validator.LoanApplicationValidator
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
-
 @RequiredArgsConstructor
 public class LoanApplicationUseCase implements ILoanApplicationUseCase {
 

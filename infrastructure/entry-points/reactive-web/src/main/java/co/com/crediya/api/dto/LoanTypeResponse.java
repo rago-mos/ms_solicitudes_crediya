@@ -1,7 +1,6 @@
 package co.com.crediya.api.dto;
 
 import lombok.*;
-
 import java.math.BigDecimal;
 
 @Getter

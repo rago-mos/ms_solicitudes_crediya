@@ -1,6 +1,5 @@
 package co.com.crediya.r2dbc;
 
-
 import co.com.crediya.model.state.State;
 import co.com.crediya.model.state.gateways.StateRepository;
 import co.com.crediya.r2dbc.entities.StateEntity;
@@ -8,7 +7,6 @@ import co.com.crediya.r2dbc.helper.ReactiveAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
-
 
 @Repository
 public class StateReactiveRepositoryAdapter extends ReactiveAdapterOperations<

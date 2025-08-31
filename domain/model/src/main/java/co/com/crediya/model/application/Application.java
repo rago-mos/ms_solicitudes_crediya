@@ -1,6 +1,5 @@
 package co.com.crediya.model.application;
 
-
 import co.com.crediya.model.loantype.LoanType;
 import co.com.crediya.model.state.State;
 import lombok.Builder;

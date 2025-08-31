@@ -1,6 +1,5 @@
 package co.com.crediya.model.state;
 
-
 import lombok.Builder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

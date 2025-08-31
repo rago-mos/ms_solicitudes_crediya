@@ -1,6 +1,5 @@
 package co.com.crediya.usecase.loanapplication.validator;
 
-
 import co.com.crediya.model.application.Application;
 import co.com.crediya.model.application.gateways.UserClientRepository;
 import co.com.crediya.model.loantype.gateways.LoanTypeRepository;
@@ -11,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
-
 
 @RequiredArgsConstructor
 public class LoanApplicationValidator {
