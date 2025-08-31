@@ -1,10 +1,14 @@
 package co.com.crediya.config;
 
+import co.com.crediya.r2dbc.ApplicationReactiveRepository;
+import co.com.crediya.r2dbc.LoanTypeReactiveRepository;
+import co.com.crediya.r2dbc.StateReactiveRepository;
+import co.com.crediya.r2dbc.config.MysqlConnectionProperties;
+import co.com.crediya.usecase.loanapplication.validator.LoanApplicationValidator;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.mockito.Mockito;
+import org.springframework.context.annotation.*;
+
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class UseCasesConfigTest {
@@ -28,7 +32,59 @@ public class UseCasesConfigTest {
 
     @Configuration
     @Import(UseCasesConfig.class)
+    @ComponentScan(basePackages = {
+            "co.com.crediya.usecase",
+            "co.com.crediya.r2dbc", // Aquí vive tu implementación
+            "co.com.crediya.model"  // Si necesitas escanear interfaces o modelos
+    })
     static class TestConfig {
+
+        @Bean
+        public LoanApplicationValidator loanApplicationValidator() {
+            return Mockito.mock(LoanApplicationValidator.class);
+        }
+
+        @Bean
+        public ApplicationReactiveRepository applicationReactiveRepository() {
+            return Mockito.mock(ApplicationReactiveRepository.class);
+        }
+
+        @Bean
+        public LoanTypeReactiveRepository loanTypeReactiveRepository() {
+            return Mockito.mock(LoanTypeReactiveRepository.class);
+        }
+
+        @Bean
+        public StateReactiveRepository stateReactiveRepository() {
+            return Mockito.mock(StateReactiveRepository.class);
+        }
+
+        @Bean
+        public MysqlConnectionProperties mysqlConnectionProperties() {
+            return new MysqlConnectionProperties(
+                    "localhost",
+                    3306,
+                    "testdb",
+                    "test",
+                    "test",
+                    "test"
+            );
+        }
+
+        @Bean
+        public org.reactivecommons.utils.ObjectMapper reactiveCommonsObjectMapper() {
+            return new org.reactivecommons.utils.ObjectMapper() {
+                @Override
+                public <T> T map(Object src, Class<T> target) {
+                    return null;
+                }
+
+                @Override
+                public <T> T mapBuilder(Object src, Class<T> target) {
+                    return null;
+                }
+            };
+        }
 
         @Bean
         public MyUseCase myUseCase() {
