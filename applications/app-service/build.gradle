@@ -1,12 +1,25 @@
 apply plugin: 'org.springframework.boot'
 
 dependencies {
+	implementation project(':rest-consumer')
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation project(':reactive-web')
+	implementation 'org.reactivecommons.utils:object-mapper:0.1.0'
+    implementation project(':r2dbc-mysql')
     implementation project(':model')
     implementation project(':usecase')
     implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-mysql'
+    implementation 'com.mysql:mysql-connector-j:9.1.0'
     runtimeOnly('org.springframework.boot:spring-boot-devtools')
     testImplementation 'com.tngtech.archunit:archunit:1.4.1'
     testImplementation 'com.fasterxml.jackson.core:jackson-databind'
+    testImplementation 'org.springframework.data:spring-data-r2dbc'
+    implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+    implementation 'io.asyncer:r2dbc-mysql:1.4.0'
+    implementation 'io.r2dbc:r2dbc-pool'
+    implementation "org.springdoc:springdoc-openapi-starter-webflux-ui:$springdocVersion"
 }
 
 tasks.register('explodedJar', Copy) {
@@ -23,4 +36,3 @@ bootJar {
     // Sets output jar name
     archiveFileName = "${project.getParent().getName()}.${archiveExtension.get()}"
 }
-
