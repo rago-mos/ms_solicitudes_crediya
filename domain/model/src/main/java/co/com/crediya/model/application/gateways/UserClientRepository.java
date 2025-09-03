@@ -4,5 +4,5 @@ import reactor.core.publisher.Mono;
 
 public interface UserClientRepository {
 
-    Mono<Boolean> userExistsByDocument(String document);
+    Mono<Boolean> userExistsByDocument(String document, String token);
 }
