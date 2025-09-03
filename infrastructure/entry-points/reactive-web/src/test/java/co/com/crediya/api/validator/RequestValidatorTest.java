@@ -9,8 +9,6 @@ import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class RequestValidatorTest {
 
     private Validator validator;

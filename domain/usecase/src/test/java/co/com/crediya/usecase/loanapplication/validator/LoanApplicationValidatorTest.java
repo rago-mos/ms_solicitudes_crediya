@@ -6,8 +6,8 @@ import co.com.crediya.model.loantype.LoanType;
 import co.com.crediya.model.loantype.gateways.LoanTypeRepository;
 import co.com.crediya.model.state.State;
 import co.com.crediya.model.state.gateways.StateRepository;
-import co.com.crediya.usecase.loanapplication.exception.BusinessException;
-import co.com.crediya.usecase.loanapplication.exception.NotFoundException;
+import co.com.crediya.model.exception.BusinessException;
+import co.com.crediya.model.exception.NotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Mono;
@@ -57,10 +57,10 @@ class LoanApplicationValidatorTest {
 
         when(stateRepository.existsState(1)).thenReturn(Mono.just(true));
         when(loanTypeRepository.existsLoanType(2)).thenReturn(Mono.just(true));
-        when(userClientRepository.userExistsByDocument("123456789")).thenReturn(Mono.just(true));
+        when(userClientRepository.userExistsByDocument("123456789", "shjdfhks")).thenReturn(Mono.just(true));
         when(loanTypeRepository.findLoanType(2)).thenReturn(Mono.just(loanType));
 
-        StepVerifier.create(validator.validate(baseApplication))
+        StepVerifier.create(validator.validate(baseApplication, "shjdfhks"))
                 .verifyComplete();
     }
 
@@ -68,7 +68,7 @@ class LoanApplicationValidatorTest {
     void shouldFailWhenStateNotFound() {
         when(stateRepository.existsState(1)).thenReturn(Mono.just(false));
         when(loanTypeRepository.existsLoanType(anyInt())).thenReturn(Mono.just(true));
-        when(userClientRepository.userExistsByDocument(anyString())).thenReturn(Mono.just(true));
+        when(userClientRepository.userExistsByDocument(anyString(), anyString())).thenReturn(Mono.just(true));
         when(loanTypeRepository.findLoanType(anyInt())).thenReturn(Mono.just(
                 LoanType.builder()
                         .minimumAmount(new BigDecimal("100000"))
@@ -76,7 +76,7 @@ class LoanApplicationValidatorTest {
                         .build()
         ));
 
-        StepVerifier.create(validator.validate(baseApplication))
+        StepVerifier.create(validator.validate(baseApplication, "shjdfhks"))
                 .expectErrorMatches(e -> e instanceof NotFoundException &&
                         e.getMessage().equals("State not found"))
                 .verify();
@@ -86,7 +86,7 @@ class LoanApplicationValidatorTest {
     void shouldFailWhenLoanTypeNotFound() {
         when(stateRepository.existsState(1)).thenReturn(Mono.just(true));
         when(loanTypeRepository.existsLoanType(2)).thenReturn(Mono.just(false));
-        when(userClientRepository.userExistsByDocument(anyString())).thenReturn(Mono.just(true));
+        when(userClientRepository.userExistsByDocument(anyString(), anyString())).thenReturn(Mono.just(true));
         when(loanTypeRepository.findLoanType(anyInt())).thenReturn(Mono.just(
                 LoanType.builder()
                         .minimumAmount(new BigDecimal("100000"))
@@ -94,7 +94,7 @@ class LoanApplicationValidatorTest {
                         .build()
         ));
 
-        StepVerifier.create(validator.validate(baseApplication))
+        StepVerifier.create(validator.validate(baseApplication, "shjdfhks"))
                 .expectErrorMatches(e -> e instanceof NotFoundException &&
                         e.getMessage().equals("The loan type does not exist"))
                 .verify();
@@ -104,7 +104,7 @@ class LoanApplicationValidatorTest {
     void shouldFailWhenUserDoesNotExist() {
         when(stateRepository.existsState(1)).thenReturn(Mono.just(true));
         when(loanTypeRepository.existsLoanType(2)).thenReturn(Mono.just(true));
-        when(userClientRepository.userExistsByDocument("123456789")).thenReturn(Mono.just(false));
+        when(userClientRepository.userExistsByDocument("123456789", "shjdfhks")).thenReturn(Mono.just(false));
         when(loanTypeRepository.findLoanType(anyInt())).thenReturn(Mono.just(
                 LoanType.builder()
                         .minimumAmount(new BigDecimal("100000"))
@@ -112,7 +112,7 @@ class LoanApplicationValidatorTest {
                         .build()
         ));
 
-        StepVerifier.create(validator.validate(baseApplication))
+        StepVerifier.create(validator.validate(baseApplication, "shjdfhks"))
                 .expectErrorMatches(e -> e instanceof NotFoundException &&
                         e.getMessage().equals("User does not exist"))
                 .verify();
@@ -128,10 +128,10 @@ class LoanApplicationValidatorTest {
 
         when(stateRepository.existsState(1)).thenReturn(Mono.just(true));
         when(loanTypeRepository.existsLoanType(2)).thenReturn(Mono.just(true));
-        when(userClientRepository.userExistsByDocument("123456789")).thenReturn(Mono.just(true));
+        when(userClientRepository.userExistsByDocument("123456789", "shjdfhks")).thenReturn(Mono.just(true));
         when(loanTypeRepository.findLoanType(2)).thenReturn(Mono.just(loanType));
 
-        StepVerifier.create(validator.validate(baseApplication))
+        StepVerifier.create(validator.validate(baseApplication, "shjdfhks"))
                 .expectErrorMatches(e -> e instanceof BusinessException &&
                         e.getMessage().contains("The amount is not valid"))
                 .verify();

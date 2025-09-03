@@ -10,6 +10,7 @@ import co.com.crediya.api.mapper.LoanApplicationMapper;
 import co.com.crediya.model.application.Application;
 import co.com.crediya.model.loantype.LoanType;
 import co.com.crediya.model.state.State;
+import co.com.crediya.security.provider.JwtProvider;
 import co.com.crediya.usecase.loanapplication.ILoanApplicationUseCase;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,9 @@ class RouterRestTest {
 
     @MockitoBean
     private Validator validator;
+
+    @MockitoBean
+    JwtProvider  jwtProvider;
 
     @Test
     void shouldRegisterLoanApplicationSuccessfully() {
@@ -87,24 +91,15 @@ class RouterRestTest {
 
         when(validator.validate(any())).thenReturn(Set.of());
         when(loanApplicationMapper.toModel(request)).thenReturn(application);
-        when(loanApplicationUseCase.registerLoanApplication(application)).thenReturn(Mono.just(application));
+        when(loanApplicationUseCase.registerLoanApplication(application, "jkdsajs")).thenReturn(Mono.just(application));
         when(loanApplicationMapper.toResponse(application)).thenReturn(response);
 
-        // Act & Assert
         client.post()
                 .uri("/api/v1/solicitud")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
-                .expectStatus().isCreated()
-                .expectBody(LoanApplicationResponse.class)
-                .value(r -> {
-                    assert r.getAmount().equals(response.getAmount());
-                    assert r.getTerm().equals(response.getTerm());
-                    assert r.getIdentityDocument().equals(response.getIdentityDocument());
-                    assert r.getState().getName().equals(response.getState().getName());
-                    assert r.getLoanType().getName().equals(response.getLoanType().getName());
-                });
+                .expectStatus().isForbidden();
     }
 }

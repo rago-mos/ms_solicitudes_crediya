@@ -4,6 +4,7 @@ import co.com.crediya.r2dbc.ApplicationReactiveRepository;
 import co.com.crediya.r2dbc.LoanTypeReactiveRepository;
 import co.com.crediya.r2dbc.StateReactiveRepository;
 import co.com.crediya.r2dbc.config.MysqlConnectionProperties;
+import co.com.crediya.security.provider.JwtProvider;
 import co.com.crediya.usecase.loanapplication.validator.LoanApplicationValidator;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -34,10 +35,15 @@ public class UseCasesConfigTest {
     @Import(UseCasesConfig.class)
     @ComponentScan(basePackages = {
             "co.com.crediya.usecase",
-            "co.com.crediya.r2dbc", // Aquí vive tu implementación
-            "co.com.crediya.model"  // Si necesitas escanear interfaces o modelos
+            "co.com.crediya.r2dbc",
+            "co.com.crediya.model"
     })
     static class TestConfig {
+
+        @Bean
+        public JwtProvider  jwtProvider() {
+            return Mockito.mock(JwtProvider.class);
+        }
 
         @Bean
         public LoanApplicationValidator loanApplicationValidator() {
