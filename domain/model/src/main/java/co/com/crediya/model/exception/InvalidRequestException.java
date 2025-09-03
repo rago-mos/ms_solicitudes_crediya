@@ -1,4 +1,4 @@
-package co.com.crediya.usecase.loanapplication.exception;
+package co.com.crediya.model.exception;
 
 
 public class InvalidRequestException extends ApiException {

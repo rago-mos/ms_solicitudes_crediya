@@ -47,7 +47,7 @@ class RestConsumerTest {
                 .setResponseCode(HttpStatus.OK.value())
                 .setBody("{\"exists\": true}"));
 
-        var mono = restConsumer.userExistsByDocument("123456");
+        var mono = restConsumer.userExistsByDocument("123456", "iwuefiuwehfw");
 
         StepVerifier.create(mono)
                 .expectNext(true)
@@ -67,7 +67,7 @@ class RestConsumerTest {
                 .setResponseCode(HttpStatus.OK.value())
                 .setBody("{\"exists\": false}"));
 
-        var mono = restConsumer.userExistsByDocument("999");
+        var mono = restConsumer.userExistsByDocument("999", "iwuefiuwehfw");
 
         StepVerifier.create(mono)
                 .expectNext(false)
@@ -87,7 +87,7 @@ class RestConsumerTest {
                 .setResponseCode(HttpStatus.NOT_FOUND.value())
                 .setBody("{\"title\":\"Not Found\",\"detail\":\"User not found\"}"));
 
-        var mono = restConsumer.userExistsByDocument("999");
+        var mono = restConsumer.userExistsByDocument("999", "iwuefiuwehfw");
 
         StepVerifier.create(mono)
                 .expectErrorSatisfies(throwable -> {

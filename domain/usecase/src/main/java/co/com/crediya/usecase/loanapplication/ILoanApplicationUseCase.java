@@ -5,5 +5,5 @@ import reactor.core.publisher.Mono;
 
 public interface ILoanApplicationUseCase {
 
-    Mono<Application> registerLoanApplication(Application application);
+    Mono<Application> registerLoanApplication(Application application, String token);
 }

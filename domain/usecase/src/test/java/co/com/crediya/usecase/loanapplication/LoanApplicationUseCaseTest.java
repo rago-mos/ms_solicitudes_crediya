@@ -38,7 +38,7 @@ class LoanApplicationUseCaseTest {
 
     @Test
     void shouldRegisterLoanApplicationSuccessfully() {
-        // Arrange
+
         Application application = Application.builder()
                 .idApplication("APP-001")
                 .amount(new BigDecimal("1000000"))
@@ -64,15 +64,13 @@ class LoanApplicationUseCaseTest {
                 .automaticValidation(true)
                 .build();
 
-        when(validator.validate(application)).thenReturn(Mono.empty());
+        when(validator.validate(application, "shjdfhks")).thenReturn(Mono.empty());
         when(applicationRepository.registerApplication(application)).thenReturn(Mono.just(application));
         when(stateRepository.findState(1)).thenReturn(Mono.just(enrichedState));
         when(loanTypeRepository.findLoanType(2)).thenReturn(Mono.just(enrichedLoanType));
 
-        // Act
-        Mono<Application> result = useCase.registerLoanApplication(application);
+        Mono<Application> result = useCase.registerLoanApplication(application, "shjdfhks");
 
-        // Assert
         StepVerifier.create(result)
                 .assertNext(app -> {
                     assert app.getState().getName().equals("Approved");
@@ -81,7 +79,7 @@ class LoanApplicationUseCaseTest {
                 })
                 .verifyComplete();
 
-        verify(validator).validate(application);
+        verify(validator).validate(application, "shjdfhks");
         verify(applicationRepository).registerApplication(application);
         verify(stateRepository).findState(1);
         verify(loanTypeRepository).findLoanType(2);

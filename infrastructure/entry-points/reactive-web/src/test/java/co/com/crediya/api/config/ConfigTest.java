@@ -3,6 +3,7 @@ package co.com.crediya.api.config;
 import co.com.crediya.api.Handler;
 import co.com.crediya.api.RouterRest;
 import co.com.crediya.api.mapper.LoanApplicationMapper;
+import co.com.crediya.security.provider.JwtProvider;
 import co.com.crediya.usecase.loanapplication.ILoanApplicationUseCase;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,7 @@ import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
@@ -23,6 +25,7 @@ class ConfigTest {
     @Autowired
     private WebTestClient webTestClient;
 
+    @WithMockUser(username = "admin", authorities = {"ADMIN", "ASESOR"})
     @Test
     void corsConfigurationShouldAllowOrigins() {
         webTestClient.get()
@@ -57,5 +60,10 @@ class MockUseCaseConfig {
     @Bean
     public Validator validator() {
         return Mockito.mock(Validator.class);
+    }
+
+    @Bean
+    public JwtProvider jwtProvider() {
+        return Mockito.mock(JwtProvider.class);
     }
 }

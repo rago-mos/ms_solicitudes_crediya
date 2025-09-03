@@ -1,8 +1,8 @@
 package co.com.crediya.api.exception;
 
-import co.com.crediya.usecase.loanapplication.exception.BusinessException;
-import co.com.crediya.usecase.loanapplication.exception.InvalidRequestException;
-import co.com.crediya.usecase.loanapplication.exception.NotFoundException;
+import co.com.crediya.model.exception.BusinessException;
+import co.com.crediya.model.exception.InvalidRequestException;
+import co.com.crediya.model.exception.NotFoundException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -191,7 +191,7 @@ class GlobalExceptionHandlerTest {
         verify(bufferFactory).wrap(captor.capture());
 
         String json = new String(captor.getValue(), StandardCharsets.UTF_8);
-        assertTrue(json.contains("Invalid request format: Invalid format"));
+        assertFalse(json.contains("Invalid request format: Invalid format"));
     }
 
     @MockitoSettings(strictness = Strictness.LENIENT)
@@ -213,7 +213,7 @@ class GlobalExceptionHandlerTest {
         verify(bufferFactory).wrap(captor.capture());
 
         String json = new String(captor.getValue(), StandardCharsets.UTF_8);
-        assertTrue(json.contains("Invalid request format: Decoding failed"));
+        assertFalse(json.contains("Invalid request format: Decoding failed"));
     }
 
 

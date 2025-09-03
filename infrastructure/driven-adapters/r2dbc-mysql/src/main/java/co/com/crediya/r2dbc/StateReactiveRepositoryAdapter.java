@@ -1,5 +1,6 @@
 package co.com.crediya.r2dbc;
 
+import co.com.crediya.model.exception.NotFoundException;
 import co.com.crediya.model.state.State;
 import co.com.crediya.model.state.gateways.StateRepository;
 import co.com.crediya.r2dbc.entities.StateEntity;
@@ -7,6 +8,8 @@ import co.com.crediya.r2dbc.helper.ReactiveAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
+
+import static co.com.crediya.model.utils.Constant.*;
 
 @Repository
 public class StateReactiveRepositoryAdapter extends ReactiveAdapterOperations<
@@ -24,7 +27,7 @@ public class StateReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     @Override
     public Mono<State> findState(Integer id) {
         return repository.findById(id)
-                .switchIfEmpty(Mono.error(new Exception("state not found")))
+                .switchIfEmpty(Mono.error(new NotFoundException(ERROR_STATE)))
                 .map(entity -> mapper.map(entity, State.class));
     }
 

@@ -20,8 +20,8 @@ public class LoanApplicationUseCase implements ILoanApplicationUseCase {
 
 
     @Override
-    public Mono<Application> registerLoanApplication(Application application) {
-        return validator.validate(application)
+    public Mono<Application> registerLoanApplication(Application application, String token) {
+        return validator.validate(application, token)
                 .then(applicationRepository.registerApplication(application))
                 .flatMap(this::setApplication);
     }

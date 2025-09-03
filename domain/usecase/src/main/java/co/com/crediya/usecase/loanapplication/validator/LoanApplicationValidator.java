@@ -4,12 +4,14 @@ import co.com.crediya.model.application.Application;
 import co.com.crediya.model.application.gateways.UserClientRepository;
 import co.com.crediya.model.loantype.gateways.LoanTypeRepository;
 import co.com.crediya.model.state.gateways.StateRepository;
-import co.com.crediya.usecase.loanapplication.exception.BusinessException;
-import co.com.crediya.usecase.loanapplication.exception.NotFoundException;
+import co.com.crediya.model.exception.BusinessException;
+import co.com.crediya.model.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+
+import static co.com.crediya.model.utils.Constant.*;
 
 @RequiredArgsConstructor
 public class LoanApplicationValidator {
@@ -18,10 +20,10 @@ public class LoanApplicationValidator {
     private final StateRepository stateRepository;
     private final UserClientRepository userClientRepository;
 
-    public Mono<Void> validate(Application application) {
+    public Mono<Void> validate(Application application, String token) {
         return validateExistsState(application)
                 .then(validateExistsLoanType(application))
-                .then(validateUserExists(application))
+                .then(validateUserExists(application, token))
                 .then(validateAmount(application));
     }
 
@@ -29,14 +31,14 @@ public class LoanApplicationValidator {
         return stateRepository.existsState(application.getState().getIdState())
                 .flatMap(exists -> Boolean.TRUE.equals(exists)
                         ? Mono.empty()
-                        : Mono.error(new NotFoundException("State not found")));
+                        : Mono.error(new NotFoundException(STATE_ERROR)));
     }
 
     private Mono<Void> validateExistsLoanType(Application application) {
         return loanTypeRepository.existsLoanType(application.getLoanType().getIdLoanType())
                 .flatMap(exists -> Boolean.TRUE.equals(exists)
                         ? Mono.empty()
-                        : Mono.error(new NotFoundException("The loan type does not exist")));
+                        : Mono.error(new NotFoundException(LOAN_TYPE_ERROR)));
     }
 
     private Mono<Void> validateAmount(Application application) {
@@ -48,16 +50,15 @@ public class LoanApplicationValidator {
                         return Mono.empty();
                     }
                     return Mono.error(new BusinessException(
-                            String.format("The amount is not valid; it must be between %s and %s",
-                                    loanType.getMinimumAmount(), loanType.getMaximumAmount())));
+                            String.format(AMOUNT_ERROR, loanType.getMinimumAmount(), loanType.getMaximumAmount())));
                 });
     }
 
-    private Mono<Void> validateUserExists(Application application) {
-        return userClientRepository.userExistsByDocument(application.getIdentityDocument())
+    private Mono<Void> validateUserExists(Application application, String token) {
+        return userClientRepository.userExistsByDocument(application.getIdentityDocument(), token)
                 .flatMap(exists -> Boolean.TRUE.equals(exists)
                         ? Mono.empty()
-                        : Mono.error(new NotFoundException("User does not exist")));
+                        : Mono.error(new NotFoundException(USER_ERROR)));
     }
 
 
