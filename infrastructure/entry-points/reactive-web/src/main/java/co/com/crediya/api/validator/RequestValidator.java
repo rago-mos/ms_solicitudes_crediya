@@ -1,6 +1,5 @@
 package co.com.crediya.api.validator;
 
-import co.com.crediya.api.dto.LoanApplicationRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import org.slf4j.Logger;
@@ -18,8 +17,8 @@ public final class RequestValidator {
         // Evita instanciación
     }
 
-    public static Mono<LoanApplicationRequest> validate(LoanApplicationRequest request, Validator validator) {
-        Set<ConstraintViolation<LoanApplicationRequest>> violations = validator.validate(request);
+    public static <T> Mono<T> validate(T request, Validator validator) {
+        Set<ConstraintViolation<T>> violations = validator.validate(request);
 
         if (violations.isEmpty()) {
             return Mono.just(request);
