@@ -145,7 +145,6 @@ class RouterRestTest {
         when(loanApplicationUseCase.getLoanApplication(anyList(), anyInt(), anyInt(), anyString()))
                 .thenReturn(Mono.just(pageResponse));
 
-        // Act & Assert
         client.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/api/v1/solicitud")
