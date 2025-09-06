@@ -76,10 +76,13 @@ public class Handler {
         int size = request.queryParam("size").map(Integer::parseInt).orElse(10);
 
         return loanApplicationUseCase.getLoanApplication(status, page, size, token)
-                .flatMap(response ->
-                    ServerResponse.ok()
+                .flatMap(response -> {
+                    log.info(LOG_INFO_RESULT_APPLICATIONS, response.getTotalElements());
+                    return ServerResponse.ok()
                             .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(response)
+                            .bodyValue(response);
+                        }
+
                 );
     }
 

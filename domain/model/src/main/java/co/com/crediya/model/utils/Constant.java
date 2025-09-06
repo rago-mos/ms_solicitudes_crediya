@@ -13,11 +13,13 @@ public class Constant {
     public static final String LOG_INFO_CREATED = "Application created successfully: {}";
     public static final String LOG_VALIDATING_USER = "Validating user by document number: {}";
     public static final String LOG_QUERY_USER = "Service: Querying users by document";
+    public static final String LOG_INFO_RESULT_APPLICATIONS = "Satisfactory query with this number of elements: {}";
 
     public static final String ERROR_BAD_TOKEN = "bad token";
     public static final String ERROR_STATE = "state not found";
     public static final String ERROR_LOAN_TYPE = "loan type not found";
     public static final String ERROR_ACCES_DENIED = "Access denied. You do not have the necessary permissions for this resource";
+    public static final String ERROR_ACCES_DENIED_ARGUMENT = "Access denied. You do not have the necessary permissions for this resource: {}";
     public static final String ERROR_EXTRACT_STATUS = "Invalid status value: ";
 
     public static final String URL_CONSUMER_USER_DOCUMENT = "/api/v1/usuarios/{documentIdentity}";
