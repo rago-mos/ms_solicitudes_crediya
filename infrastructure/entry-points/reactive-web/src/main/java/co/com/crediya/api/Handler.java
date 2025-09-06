@@ -12,12 +12,16 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
+import java.util.List;
+
+import static co.com.crediya.api.utils.Utils.extractStatus;
 import static co.com.crediya.api.utils.Utils.extractToken;
 import static co.com.crediya.model.utils.Constant.*;
 
@@ -46,7 +50,7 @@ public class Handler {
                         return ServerResponse.status(HttpStatus.FORBIDDEN).bodyValue(new ErrorResponseHandler(
                                 LocalDateTime.now(), 403,
                                 FORBIDDEN,
-                                MESSAGGE_ERROR_FORBIDDEN));
+                                MESSAGE_ERROR_FORBIDDEN));
                     }
 
                     return RequestValidator.validate(loanRequest, validator)
@@ -60,6 +64,23 @@ public class Handler {
                                         });
                             });
                 });
+    }
+
+    @PreAuthorize("hasAuthority('ASESOR')")
+    public Mono<ServerResponse> listenGetApplicationLoan(ServerRequest request) {
+
+        String token = extractToken(request);
+        List<Integer> status = extractStatus(request);
+
+        int page = request.queryParam("page").map(Integer::parseInt).orElse(1);
+        int size = request.queryParam("size").map(Integer::parseInt).orElse(10);
+
+        return loanApplicationUseCase.getLoanApplication(status, page, size, token)
+                .flatMap(response ->
+                    ServerResponse.ok()
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .bodyValue(response)
+                );
     }
 
 }
