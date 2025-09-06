@@ -35,7 +35,7 @@ WHERE NOT EXISTS (
 -- Inserts seguros para Flyway: tipo_prestamo
 INSERT INTO tipo_prestamo (nombre, monto_minimo, monto_maximo, tasa_interes, validacion_automatica)
 SELECT * FROM (
-                  SELECT 'CREDITO_DE_LIBRE_INVERSION', 500000.00, 100000000.00, 1.50, TRUE
+                  SELECT 'CREDITO_DE_LIBRE_INVERSION', 500000.00, 100000000.00, 21.50, TRUE
               ) AS tmp
 WHERE NOT EXISTS (
     SELECT 1 FROM tipo_prestamo WHERE nombre = 'CREDITO_DE_LIBRE_INVERSION'
@@ -43,7 +43,7 @@ WHERE NOT EXISTS (
 
 INSERT INTO tipo_prestamo (nombre, monto_minimo, monto_maximo, tasa_interes, validacion_automatica)
 SELECT * FROM (
-                  SELECT 'CREDITO_VEHICULO', 10000000.00, 200000000.00, 1.20, FALSE
+                  SELECT 'CREDITO_VEHICULO', 10000000.00, 200000000.00, 15.20, FALSE
               ) AS tmp
 WHERE NOT EXISTS (
     SELECT 1 FROM tipo_prestamo WHERE nombre = 'CREDITO_VEHICULO'
@@ -51,7 +51,7 @@ WHERE NOT EXISTS (
 
 INSERT INTO tipo_prestamo (nombre, monto_minimo, monto_maximo, tasa_interes, validacion_automatica)
 SELECT * FROM (
-                  SELECT 'CREDITO_HIPOTECARIO', 30000000.00, 600000000.00, 1.00, FALSE
+                  SELECT 'CREDITO_HIPOTECARIO', 30000000.00, 600000000.00, 11.50, FALSE
               ) AS tmp
 WHERE NOT EXISTS (
     SELECT 1 FROM tipo_prestamo WHERE nombre = 'CREDITO_HIPOTECARIO'
@@ -59,7 +59,7 @@ WHERE NOT EXISTS (
 
 INSERT INTO tipo_prestamo (nombre, monto_minimo, monto_maximo, tasa_interes, validacion_automatica)
 SELECT * FROM (
-                  SELECT 'CREDITO_EDUCATIVO', 1000000.00, 50000000.00, 1.30, TRUE
+                  SELECT 'CREDITO_EDUCATIVO', 1000000.00, 50000000.00, 10.30, TRUE
               ) AS tmp
 WHERE NOT EXISTS (
     SELECT 1 FROM tipo_prestamo WHERE nombre = 'CREDITO_EDUCATIVO'
@@ -67,7 +67,7 @@ WHERE NOT EXISTS (
 
 INSERT INTO tipo_prestamo (nombre, monto_minimo, monto_maximo, tasa_interes, validacion_automatica)
 SELECT * FROM (
-                  SELECT 'CREDITO_ROTATIVO', 500000.00, 20000000.00, 1.80, TRUE
+                  SELECT 'CREDITO_ROTATIVO', 500000.00, 20000000.00, 18.80, TRUE
               ) AS tmp
 WHERE NOT EXISTS (
     SELECT 1 FROM tipo_prestamo WHERE nombre = 'CREDITO_ROTATIVO'

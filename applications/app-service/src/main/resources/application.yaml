@@ -1,5 +1,5 @@
 server:
-  port: 8002
+  port: ${SERVER_PORT}
 spring:
   application:
     name: "ms_solicitudes_crediya"
@@ -23,11 +23,11 @@ spring:
       db: "${adapters.r2dbc.database}"
 adapters:
   r2dbc:
-    host: "localhost"
-    port: 3306
-    database: "ms_solicitudes"
-    username: "root"
-    password: "tarah723"
+    host: ${MYSQL_HOST:localhost}
+    port: ${MYSQL_PORT:3307}
+    database: ${MYSQL_DATABASE}
+    username: ${MYSQL_USER}
+    password: ${MYSQL_ROOT_PASSWORD}
 management:
   endpoints:
     web:
@@ -41,11 +41,11 @@ management:
     circuitbreakers:
       enabled: true
 cors:
-  allowed-origins: "http://localhost:4200,http://localhost:8080,http://localhost:8001"
+  allowed-origins: "http://localhost:4200,http://localhost:8080"
 adapter:
   restconsumer:
     timeout: 5000
-    url: "http://localhost:8001"
+    url: ${REST_CONSUMER_HOST:http://localhost:8001}
 resilience4j:
   circuitbreaker:
     instances:
