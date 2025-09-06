@@ -115,8 +115,6 @@ class RouterRestTest {
     void shouldReturnLoanApplicationPageSuccessfully() {
 
         String token = "Bearer jkdsajs";
-        String rawToken = "jkdsajs";
-        List<Integer> status = List.of(1, 2);
         int page = 1;
         int size = 10;
 
