@@ -1,4 +1,4 @@
-package co.com.crediya.consumer;
+package co.com.crediya.consumer.user;
 
 import lombok.Builder;
 import lombok.AllArgsConstructor;
@@ -11,7 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class ObjectResponse {
+public class UserObjectResponse {
 
     private Boolean exists;
 

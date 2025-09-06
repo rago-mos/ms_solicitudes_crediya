@@ -20,14 +20,10 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
 import java.math.BigDecimal;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Set;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class HandlerTest {
@@ -53,7 +49,7 @@ class HandlerTest {
 
     @Test
     void shouldReturnCreatedWhenValidRequestAndMatchingDocument() {
-        // Arrange
+
         String token = "valid-token";
         String subject = "123456789";
         LoanApplicationRequest requestDto = new LoanApplicationRequest(
@@ -73,10 +69,8 @@ class HandlerTest {
         when(loanApplicationUseCase.registerLoanApplication(model, token)).thenReturn(Mono.just(created));
         when(loanApplicationMapper.toResponse(created)).thenReturn(response);
 
-        // Act
         Mono<ServerResponse> result = handler.listenPOSTApplicationLoan(request);
 
-        // Assert
         StepVerifier.create(result)
                 .expectNextMatches(res -> res.statusCode().equals(HttpStatus.CREATED))
                 .verifyComplete();
@@ -84,7 +78,7 @@ class HandlerTest {
 
     @Test
     void shouldReturnForbiddenWhenDocumentMismatch() {
-        // Arrange
+
         String token = "valid-token";
         String subject = "999999999";
         LoanApplicationRequest requestDto = new LoanApplicationRequest(
@@ -96,10 +90,8 @@ class HandlerTest {
 
         when(jwtProvider.getSubject(token)).thenReturn(subject);
 
-        // Act
         Mono<ServerResponse> result = handler.listenPOSTApplicationLoan(request);
 
-        // Assert
         StepVerifier.create(result)
                 .expectNextMatches(res -> res.statusCode().equals(HttpStatus.FORBIDDEN))
                 .verifyComplete();
@@ -107,11 +99,11 @@ class HandlerTest {
 
     @Test
     void shouldReturnBadRequestWhenValidationFails() {
-        // Arrange
+
         String token = "valid-token";
         String subject = "123456789";
         LoanApplicationRequest requestDto = new LoanApplicationRequest(
-                null, null, subject, null); // campos inválidos
+                null, null, subject, null);
 
         ServerRequest request = MockServerRequest.builder()
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
@@ -126,13 +118,11 @@ class HandlerTest {
         when(jwtProvider.getSubject(token)).thenReturn(subject);
         when(validator.validate(requestDto)).thenReturn(Set.of(violation));
 
-        // Act
         Mono<ServerResponse> result = handler.listenPOSTApplicationLoan(request);
 
-        // Assert
         StepVerifier.create(result)
                 .expectErrorMatches(error -> error instanceof IllegalArgumentException &&
                         error.getMessage().contains("amount: must not be null"))
                 .verify();
     }
-    }
+}

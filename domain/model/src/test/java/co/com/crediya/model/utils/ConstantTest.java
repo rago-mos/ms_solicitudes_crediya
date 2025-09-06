@@ -17,7 +17,7 @@ class ConstantTest {
         assertThat(Constant.AMOUNT_ERROR).isEqualTo("The amount is not valid; it must be between %s and %s");
         assertThat(Constant.USER_ERROR).isEqualTo("User does not exist");
         assertThat(Constant.FORBIDDEN).isEqualTo("Forbidden");
-        assertThat(Constant.MESSAGGE_ERROR_FORBIDDEN).isEqualTo("Document does not match authenticated user");
+        assertThat(Constant.MESSAGE_ERROR_FORBIDDEN).isEqualTo("Document does not match authenticated user");
         assertThat(Constant.LOG_WARN_FORBIDDEN).isEqualTo("Identity mismatch: token sub = {}, request document = {}");
         assertThat(Constant.LOG_INFO_CREATED).isEqualTo("Application created successfully: {}");
         assertThat(Constant.ERROR_BAD_TOKEN).isEqualTo("bad token");

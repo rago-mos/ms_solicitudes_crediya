@@ -1,5 +1,6 @@
 package co.com.crediya.config;
 
+import co.com.crediya.model.application.gateways.UserClientRepository;
 import co.com.crediya.r2dbc.ApplicationReactiveRepository;
 import co.com.crediya.r2dbc.LoanTypeReactiveRepository;
 import co.com.crediya.r2dbc.StateReactiveRepository;
@@ -39,6 +40,11 @@ public class UseCasesConfigTest {
             "co.com.crediya.model"
     })
     static class TestConfig {
+
+        @Bean
+        public UserClientRepository userClientRepository() {
+            return Mockito.mock(UserClientRepository.class);
+        }
 
         @Bean
         public JwtProvider  jwtProvider() {

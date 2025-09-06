@@ -1,15 +1,18 @@
 package co.com.crediya.r2dbc.mapper;
 
 import co.com.crediya.model.application.Application;
+import co.com.crediya.model.application.dto.LoanApplicationView;
 import co.com.crediya.model.loantype.LoanType;
 import co.com.crediya.model.state.State;
 import co.com.crediya.r2dbc.entities.ApplicationEntity;
+import co.com.crediya.r2dbc.entities.LoanApplicationViewEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class LoanApplicationEntityMapperTest {
@@ -82,5 +85,36 @@ class LoanApplicationEntityMapperTest {
 
         assertNull(application.getState());
         assertNull(application.getLoanType());
+    }
+
+    @Test
+    void shouldMapEntityToViewCorrectly() {
+        // Arrange
+        LoanApplicationViewEntity entity = LoanApplicationViewEntity.builder()
+                .amount(new BigDecimal("1000000"))
+                .monthTerm(12)
+                .identityDocument("123456789")
+                .monthAmountApprovedApplication(new BigDecimal("85000"))
+                .statusName("Approved")
+                .interestRate(new BigDecimal("0.05"))
+                .loanTypeName("Personal")
+                .baseSalary(new BigDecimal("3000000"))
+                .fullName("Rubén Tester") // no se mapea
+                .email("ruben@example.com") // no se mapea
+                .build();
+
+        LoanApplicationView result = mapper.toView(entity);
+
+        assertThat(result.getAmount()).isEqualByComparingTo("1000000");
+        assertThat(result.getMonthTerm()).isEqualTo(12);
+        assertThat(result.getIdentityDocument()).isEqualTo("123456789");
+        assertThat(result.getMonthAmountApprovedApplication()).isEqualByComparingTo("85000");
+        assertThat(result.getStatusName()).isEqualTo("Approved");
+        assertThat(result.getInterestRate()).isEqualByComparingTo("0.05");
+        assertThat(result.getLoanTypeName()).isEqualTo("Personal");
+        assertThat(result.getBaseSalary()).isEqualByComparingTo("3000000");
+
+        assertThat(result.getFullName()).isNull();
+        assertThat(result.getEmail()).isNull();
     }
 }

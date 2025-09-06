@@ -1,9 +1,11 @@
 package co.com.crediya.r2dbc;
 
 import co.com.crediya.model.application.Application;
+import co.com.crediya.model.application.dto.LoanApplicationView;
 import co.com.crediya.model.loantype.LoanType;
 import co.com.crediya.model.state.State;
 import co.com.crediya.r2dbc.entities.ApplicationEntity;
+import co.com.crediya.r2dbc.entities.LoanApplicationViewEntity;
 import co.com.crediya.r2dbc.mapper.LoanApplicationEntityMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,10 +14,13 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.reactivecommons.utils.ObjectMapper;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
+
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -61,15 +66,13 @@ class ApplicationReactiveRepositoryAdapterTest {
 
     @Test
     void shouldRegisterApplicationSuccessfully() {
-        // Arrange
+
         when(mapper.toEntity(application)).thenReturn(entity);
         when(repository.save(entity)).thenReturn(Mono.just(entity));
         when(mapper.toDomain(entity)).thenReturn(application);
 
-        // Act
         Mono<Application> result = adapter.registerApplication(application);
 
-        // Assert
         StepVerifier.create(result)
                 .expectNext(application)
                 .verifyComplete();
@@ -77,6 +80,72 @@ class ApplicationReactiveRepositoryAdapterTest {
         verify(mapper).toEntity(application);
         verify(repository).save(entity);
         verify(mapper).toDomain(entity);
+    }
+
+    @Test
+    void shouldReturnLoanApplicationViewsFromRepository() {
+
+        List<Integer> status = List.of(1, 2);
+        int limit = 10;
+        int offset = 0;
+
+        LoanApplicationViewEntity entity1 = LoanApplicationViewEntity.builder()
+                .identityDocument("123456789")
+                .amount(new BigDecimal("1000000"))
+                .monthTerm(12)
+                .monthAmountApprovedApplication(new BigDecimal("85000"))
+                .statusName("Approved")
+                .interestRate(new BigDecimal("0.05"))
+                .loanTypeName("Personal")
+                .baseSalary(new BigDecimal("3000000"))
+                .build();
+
+        LoanApplicationViewEntity entity2 = entity1.toBuilder().identityDocument("987654321").build();
+
+        LoanApplicationView view1 = LoanApplicationView.builder()
+                .identityDocument("123456789")
+                .amount(entity1.getAmount())
+                .monthTerm(entity1.getMonthTerm())
+                .monthAmountApprovedApplication(entity1.getMonthAmountApprovedApplication())
+                .statusName(entity1.getStatusName())
+                .interestRate(entity1.getInterestRate())
+                .loanTypeName(entity1.getLoanTypeName())
+                .baseSalary(entity1.getBaseSalary())
+                .build();
+
+        LoanApplicationView view2 = view1.toBuilder().identityDocument("987654321").build();
+
+        when(repository.findLoanApplicationDetails(status, limit, offset))
+                .thenReturn(Flux.just(entity1, entity2));
+
+        when(mapper.toView(entity1)).thenReturn(view1);
+        when(mapper.toView(entity2)).thenReturn(view2);
+
+        Flux<LoanApplicationView> result = adapter.findLoanApplicationDetails(status, limit, offset);
+
+        StepVerifier.create(result)
+                .expectNext(view1)
+                .expectNext(view2)
+                .verifyComplete();
+
+        verify(repository).findLoanApplicationDetails(status, limit, offset);
+        verify(mapper).toView(entity1);
+        verify(mapper).toView(entity2);
+    }
+
+    @Test
+    void shouldReturnCountByStatusFromRepository() {
+
+        List<Integer> status = List.of(1, 2);
+        when(repository.countByStatusIn(status)).thenReturn(Mono.just(5L));
+
+        Mono<Long> result = adapter.countByStatus(status);
+
+        StepVerifier.create(result)
+                .expectNext(5L)
+                .verifyComplete();
+
+        verify(repository).countByStatusIn(status);
     }
 
 }
