@@ -54,6 +54,11 @@ public class RouterRest {
                                     content = @Content(mediaType = "application/json",
                                             schema = @Schema(implementation = ErrorResponseHandler.class)
                                     )
+                            ), @ApiResponse(responseCode = "403",
+                                    description = "Access denied",
+                                    content = @Content(mediaType = "application/json",
+                                            schema = @Schema(implementation = ErrorResponseHandler.class)
+                                    )
                             ), @ApiResponse(responseCode = "404",
                                     description = "Not Found: Object not found",
                                     content = @Content(mediaType = "application/json",
@@ -113,26 +118,36 @@ public class RouterRest {
                                             schema = @Schema(type = "integer")
                                     )
                             },
-                            responses = {@ApiResponse(responseCode = "200",
-                                    description = "List returned successfully",
-                                    content = @Content(mediaType = "application/json",
-                                            schema = @Schema(implementation = PageApplicationResponse.class)
-                                    )
-                            ), @ApiResponse(responseCode = "400",
+                            responses = {
+                                    @ApiResponse(responseCode = "200",
+                                            description = "List returned successfully",
+                                            content = @Content(mediaType = "application/json",
+                                                    schema = @Schema(implementation = PageApplicationResponse.class))),
+
+                                    @ApiResponse(responseCode = "400",
                                     description = "Invalid request",
                                     content = @Content(mediaType = "application/json",
                                             schema = @Schema(implementation = ErrorResponseHandler.class),
                                             examples = {
                                                     @ExampleObject(name = "IllegalArgumentException", value = "Invalid status value"),
-                                                    @ExampleObject(name = "NumberFormatException", value = "For input string")
-                                            }
-                                    )
-                            ), @ApiResponse(responseCode = "500",
-                                    description = "Internal server error",
-                                    content = @Content(mediaType = "application/json",
-                                            schema = @Schema(implementation = ErrorResponseHandler.class)
-                                    )
-                            )}
+                                                    @ExampleObject(name = "NumberFormatException", value = "For input string")})),
+
+                                    @ApiResponse(
+                                    responseCode = "401",
+                                    description = "Bad credentials"),
+
+                                    @ApiResponse(responseCode = "403",
+                                            description = "Access denied",
+                                            content = @Content(mediaType = "application/json",
+                                                    schema = @Schema(implementation = ErrorResponseHandler.class)
+                                            )
+                                    ),
+
+                                    @ApiResponse(responseCode = "500",
+                                            description = "Internal server error",
+                                            content = @Content(mediaType = "application/json",
+                                                    schema = @Schema(implementation = ErrorResponseHandler.class)))
+                            }
                     )
             )
     })
