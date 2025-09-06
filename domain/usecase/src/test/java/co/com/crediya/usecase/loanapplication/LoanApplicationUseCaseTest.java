@@ -1,20 +1,27 @@
 package co.com.crediya.usecase.loanapplication;
 
 import co.com.crediya.model.application.Application;
+import co.com.crediya.model.application.dto.LoanApplicationView;
+import co.com.crediya.model.application.dto.PageApplicationResponse;
 import co.com.crediya.model.application.gateways.ApplicationRepository;
+import co.com.crediya.model.application.gateways.UserClientRepository;
 import co.com.crediya.model.loantype.LoanType;
 import co.com.crediya.model.loantype.gateways.LoanTypeRepository;
 import co.com.crediya.model.state.State;
 import co.com.crediya.model.state.gateways.StateRepository;
+import co.com.crediya.model.user.UserApplication;
 import co.com.crediya.usecase.loanapplication.validator.LoanApplicationValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 class LoanApplicationUseCaseTest {
@@ -23,6 +30,7 @@ class LoanApplicationUseCaseTest {
     private StateRepository stateRepository;
     private LoanTypeRepository loanTypeRepository;
     private LoanApplicationValidator validator;
+    private UserClientRepository userClientRepository;
 
     private LoanApplicationUseCase useCase;
 
@@ -32,8 +40,10 @@ class LoanApplicationUseCaseTest {
         stateRepository = mock(StateRepository.class);
         loanTypeRepository = mock(LoanTypeRepository.class);
         validator = mock(LoanApplicationValidator.class);
+        userClientRepository = mock(UserClientRepository.class);
 
-        useCase = new LoanApplicationUseCase(applicationRepository, stateRepository, loanTypeRepository, validator);
+        useCase = new LoanApplicationUseCase(applicationRepository, stateRepository, loanTypeRepository, validator,
+                userClientRepository);
     }
 
     @Test
@@ -83,5 +93,112 @@ class LoanApplicationUseCaseTest {
         verify(applicationRepository).registerApplication(application);
         verify(stateRepository).findState(1);
         verify(loanTypeRepository).findLoanType(2);
+    }
+
+    @Test
+    void shouldReturnEnrichedPageApplicationResponse() {
+
+        List<Integer> status = List.of(1, 2);
+        int page = 1;
+        int size = 10;
+        int offset = 0;
+        String token = "abc123";
+
+        LoanApplicationView view1 = LoanApplicationView.builder()
+                .identityDocument("123456789")
+                .amount(new BigDecimal("1000000"))
+                .monthTerm(12)
+                .monthAmountApprovedApplication(new BigDecimal("85000"))
+                .statusName("Approved")
+                .interestRate(new BigDecimal("0.05"))
+                .loanTypeName("Personal")
+                .build();
+
+        LoanApplicationView view2 = view1.toBuilder().identityDocument("987654321").build();
+
+        UserApplication user1 = UserApplication.builder()
+                .identityDocument("123456789")
+                .firstName("Rubén")
+                .lastName("Tester")
+                .email("ruben@example.com")
+                .baseSalary(new BigDecimal("3000000"))
+                .build();
+
+        UserApplication user2 = UserApplication.builder()
+                .identityDocument("987654321")
+                .firstName("Ana")
+                .lastName("Dev")
+                .email("ana@example.com")
+                .baseSalary(new BigDecimal("2500000"))
+                .build();
+
+        when(applicationRepository.countByStatus(status)).thenReturn(Mono.just(2L));
+        when(applicationRepository.findLoanApplicationDetails(status, size, offset)).thenReturn(Flux.just(view1, view2));
+        when(userClientRepository.getUsersByDocuments(List.of("123456789", "987654321"), token))
+                .thenReturn(Flux.just(user1, user2));
+
+        Mono<PageApplicationResponse<LoanApplicationView>> result = useCase.getLoanApplication(status, page, size, token);
+
+        // Assert
+        StepVerifier.create(result)
+                .assertNext(response -> {
+                    assertThat(response.getPage()).isEqualTo(page);
+                    assertThat(response.getSize()).isEqualTo(size);
+                    assertThat(response.getTotalElements()).isEqualTo(2L);
+                    assertThat(response.getTotalPages()).isEqualTo(1);
+                    assertThat(response.getContent()).hasSize(2);
+
+                    LoanApplicationView enriched1 = response.getContent().get(0);
+                    assertThat(enriched1.getIdentityDocument()).isEqualTo("123456789");
+                    assertThat(enriched1.getEmail()).isEqualTo("ruben@example.com");
+                    assertThat(enriched1.getBaseSalary()).isEqualByComparingTo("3000000");
+                    assertThat(enriched1.getFullName()).isEqualTo("Rubén Tester");
+
+                    LoanApplicationView enriched2 = response.getContent().get(1);
+                    assertThat(enriched2.getIdentityDocument()).isEqualTo("987654321");
+                    assertThat(enriched2.getEmail()).isEqualTo("ana@example.com");
+                    assertThat(enriched2.getBaseSalary()).isEqualByComparingTo("2500000");
+                    assertThat(enriched2.getFullName()).isEqualTo("Ana Dev");
+                })
+                .verifyComplete();
+
+        verify(applicationRepository).countByStatus(status);
+        verify(applicationRepository).findLoanApplicationDetails(status, size, offset);
+        verify(userClientRepository).getUsersByDocuments(List.of("123456789", "987654321"), token);
+    }
+
+    @Test
+    void shouldReturnPageWithoutEnrichmentWhenNoDocuments() {
+        // Arrange
+        List<Integer> status = List.of(1);
+        int page = 1;
+        int size = 10;
+        String token = "abc123";
+
+        LoanApplicationView view = LoanApplicationView.builder()
+                .identityDocument(null) // sin documento
+                .amount(new BigDecimal("500000"))
+                .monthTerm(6)
+                .build();
+
+        when(applicationRepository.countByStatus(status)).thenReturn(Mono.just(1L));
+        when(applicationRepository.findLoanApplicationDetails(status, size, 0)).thenReturn(Flux.just(view));
+
+        // Act
+        Mono<PageApplicationResponse<LoanApplicationView>> result = useCase.getLoanApplication(status, page, size, token);
+
+        // Assert
+        StepVerifier.create(result)
+                .assertNext(response -> {
+                    assertThat(response.getContent()).hasSize(1);
+                    assertThat(response.getContent().get(0).getIdentityDocument()).isNull();
+                    assertThat(response.getTotalElements()).isEqualTo(1L);
+                    assertThat(response.getTotalPages()).isEqualTo(1);
+                })
+                .verifyComplete();
+
+        verify(applicationRepository).countByStatus(status);
+        verify(applicationRepository).findLoanApplicationDetails(status, size, 0);
+        verifyNoInteractions(userClientRepository);
     }
 }
