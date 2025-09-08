@@ -11,19 +11,28 @@ public class Constant {
 
     public static final String LOG_WARN_FORBIDDEN = "Identity mismatch: token sub = {}, request document = {}";
     public static final String LOG_INFO_CREATED = "Application created successfully: {}";
+    public static final String LOG_INFO_UPDATE = "Application updated successfully: {}";
     public static final String LOG_VALIDATING_USER = "Validating user by document number: {}";
     public static final String LOG_QUERY_USER = "Service: Querying users by document";
     public static final String LOG_INFO_RESULT_APPLICATIONS = "Satisfactory query with this number of elements: {}";
 
+    public static final String LOG_DEBUG_SQS_SEND = "Message sent {}";
+
     public static final String ERROR_BAD_TOKEN = "bad token";
+    public static final String ERROR_JSON_PROCESSING = "Error serializing message";
     public static final String ERROR_STATE = "state not found";
     public static final String ERROR_LOAN_TYPE = "loan type not found";
     public static final String ERROR_ACCES_DENIED = "Access denied. You do not have the necessary permissions for this resource";
     public static final String ERROR_ACCES_DENIED_ARGUMENT = "Access denied. You do not have the necessary permissions for this resource: {}";
     public static final String ERROR_EXTRACT_STATUS = "Invalid status value: ";
+    public static final String ERROR_NOT_FOUND_APPLICATION = "Application not found";
+    public static final String ERROR_BUSINNESS_UPDATE_STATE_APPLICATION = "The state to update is not valid";
+    public static final String ERROR_BUSINNESS_UPDATE_STATE_APPLICATION_ALREADY = "The application status is already approved or rejected";
 
     public static final String URL_CONSUMER_USER_DOCUMENT = "/api/v1/usuarios/{documentIdentity}";
     public static final String URL_CONSUMER_USER_APPLICATION = "/api/v1/usuarioSolicitudes";
+
+    public static final String MESSAGE_UPDATED_APPLICATION = "state updated successfully";
 
 
     private Constant(){

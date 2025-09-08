@@ -38,4 +38,6 @@ public interface ApplicationReactiveRepository extends ReactiveCrudRepository<Ap
                              WHERE s.fk_id_estado IN (:status)
             """)
     Mono<Long> countByStatusIn(List<Integer> status);
+
+    Mono<Boolean> existsApplicationByIdApplication(String id);
 }
