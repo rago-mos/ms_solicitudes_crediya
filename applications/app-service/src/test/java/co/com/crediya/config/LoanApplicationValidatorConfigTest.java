@@ -9,22 +9,20 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-class LoanApplicationValidtorConfigTest {
+class LoanApplicationValidatorConfigTest {
 
     @Test
     void shouldCreateLoanApplicationValidatorBeanSuccessfully() {
-        // Arrange: mock dependencies
+
         LoanTypeRepository loanTypeRepository = mock(LoanTypeRepository.class);
         StateRepository stateRepository = mock(StateRepository.class);
         UserClientRepository userClientRepository = mock(UserClientRepository.class);
 
         LoanApplicationValidtorConfig config = new LoanApplicationValidtorConfig();
 
-        // Act
         LoanApplicationValidator validator = config.loanApplicationValidator(
                 loanTypeRepository, stateRepository, userClientRepository);
 
-        // Assert
         assertNotNull(validator);
     }
 }

@@ -1,5 +1,6 @@
 package co.com.crediya.config;
 
+import co.com.crediya.model.application.gateways.SqsMessageRepository;
 import co.com.crediya.model.application.gateways.UserClientRepository;
 import co.com.crediya.r2dbc.ApplicationReactiveRepository;
 import co.com.crediya.r2dbc.LoanTypeReactiveRepository;
@@ -7,6 +8,7 @@ import co.com.crediya.r2dbc.StateReactiveRepository;
 import co.com.crediya.r2dbc.config.MysqlConnectionProperties;
 import co.com.crediya.security.provider.JwtProvider;
 import co.com.crediya.usecase.loanapplication.validator.LoanApplicationValidator;
+import co.com.crediya.usecase.loanapplication.validator.UpdateApplicationValidator;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.*;
@@ -47,6 +49,11 @@ public class UseCasesConfigTest {
         }
 
         @Bean
+        public SqsMessageRepository  sqsMessageRepository() {
+            return Mockito.mock(SqsMessageRepository.class);
+        }
+
+        @Bean
         public JwtProvider  jwtProvider() {
             return Mockito.mock(JwtProvider.class);
         }
@@ -54,6 +61,11 @@ public class UseCasesConfigTest {
         @Bean
         public LoanApplicationValidator loanApplicationValidator() {
             return Mockito.mock(LoanApplicationValidator.class);
+        }
+
+        @Bean
+        public UpdateApplicationValidator updateApplicationValidator() {
+            return Mockito.mock(UpdateApplicationValidator.class);
         }
 
         @Bean
