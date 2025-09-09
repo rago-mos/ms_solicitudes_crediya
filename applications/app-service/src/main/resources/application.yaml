@@ -1,5 +1,5 @@
 server:
-  port: ${SERVER_PORT}
+  port: "${SERVER_PORT}"
 spring:
   application:
     name: "ms_solicitudes_crediya"
@@ -23,11 +23,11 @@ spring:
       db: "${adapters.r2dbc.database}"
 adapters:
   r2dbc:
-    host: ${MYSQL_HOST:localhost}
-    port: ${MYSQL_PORT:3307}
-    database: ${MYSQL_DATABASE}
-    username: ${MYSQL_USER}
-    password: ${MYSQL_ROOT_PASSWORD}
+    host: "${MYSQL_HOST:localhost}"
+    port: "${MYSQL_PORT:3307}"
+    database: "${MYSQL_DATABASE}"
+    username: "${MYSQL_USER}"
+    password: "${MYSQL_ROOT_PASSWORD}"
 management:
   endpoints:
     web:
@@ -45,7 +45,11 @@ cors:
 adapter:
   restconsumer:
     timeout: 5000
-    url: ${REST_CONSUMER_HOST:http://localhost:8001}
+    url: "${REST_CONSUMER_HOST:http://localhost:8001}"
+  sqs:
+    region: ${AWS_REGION}
+    queueUrl: ${AWS_SQS_QUEUEURL}
+    endpoint: ${AWS_SQS_ENDPOINT}
 resilience4j:
   circuitbreaker:
     instances:
@@ -67,7 +71,5 @@ resilience4j:
         slidingWindowSize: 10
         minimumNumberOfCalls: 10
         waitDurationInOpenState: "10s"
-
-# JWT
 jwt:
-  secret: ${JWT_SECRET}
+  secret: "${JWT_SECRET}"

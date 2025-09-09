@@ -1,12 +1,12 @@
 package co.com.crediya.api;
 
-import co.com.crediya.api.dto.ErrorResponseHandler;
-import co.com.crediya.api.dto.LoanApplicationRequest;
-import co.com.crediya.api.dto.LoanApplicationResponse;
+import co.com.crediya.api.dto.*;
 import co.com.crediya.api.mapper.LoanApplicationMapper;
+import co.com.crediya.api.mapper.UpdateApplicationMapper;
 import co.com.crediya.api.validator.RequestValidator;
 import co.com.crediya.security.provider.JwtProvider;
 import co.com.crediya.usecase.loanapplication.ILoanApplicationUseCase;
+import co.com.crediya.usecase.loanapplication.IUpdateApplicationUseCase;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -32,7 +32,9 @@ public class Handler {
     public static final Logger log = LoggerFactory.getLogger(Handler.class);
     private final Validator validator;
     private final ILoanApplicationUseCase loanApplicationUseCase;
+    private final IUpdateApplicationUseCase updateApplicationUseCase;
     private final LoanApplicationMapper loanApplicationMapper;
+    private final UpdateApplicationMapper updateApplicationMapper;
     private final JwtProvider jwtProvider;
 
 
@@ -84,6 +86,24 @@ public class Handler {
                         }
 
                 );
+    }
+
+    @PreAuthorize("hasAuthority('ASESOR')")
+    public Mono<ServerResponse> listenPutApplicationLoan(ServerRequest request) {
+
+        String token = extractToken(request);
+
+        return request.bodyToMono(UpdateApplicationRequest.class)
+                .flatMap(loanRequest -> RequestValidator.validate(loanRequest, validator)
+                .flatMap(validated -> {
+                    var model = updateApplicationMapper.toModel(validated);
+                    return updateApplicationUseCase.updateApplication(model, token)
+                            .flatMap(created -> {
+                                var response = new GenericResponse(LocalDateTime.now(), HttpStatus.OK.value(), created);
+                                log.info(LOG_INFO_UPDATE, created);
+                                return ServerResponse.status(HttpStatus.OK).bodyValue(response);
+                            });
+                }));
     }
 
 }

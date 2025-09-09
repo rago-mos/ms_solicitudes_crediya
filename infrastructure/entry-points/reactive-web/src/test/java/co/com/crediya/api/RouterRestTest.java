@@ -1,19 +1,19 @@
 package co.com.crediya.api;
 
 
-import co.com.crediya.api.dto.LoanApplicationRequest;
-import co.com.crediya.api.dto.LoanApplicationResponse;
-import co.com.crediya.api.dto.LoanTypeResponse;
-import co.com.crediya.api.dto.StateResponse;
+import co.com.crediya.api.dto.*;
 import co.com.crediya.api.exception.GlobalExceptionHandler;
 import co.com.crediya.api.mapper.LoanApplicationMapper;
+import co.com.crediya.api.mapper.UpdateApplicationMapper;
 import co.com.crediya.model.application.Application;
+import co.com.crediya.model.application.UpdateStateApplication;
 import co.com.crediya.model.application.dto.LoanApplicationView;
 import co.com.crediya.model.application.dto.PageApplicationResponse;
 import co.com.crediya.model.loantype.LoanType;
 import co.com.crediya.model.state.State;
 import co.com.crediya.security.provider.JwtProvider;
 import co.com.crediya.usecase.loanapplication.ILoanApplicationUseCase;
+import co.com.crediya.usecase.loanapplication.IUpdateApplicationUseCase;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +46,13 @@ class RouterRestTest {
     private ILoanApplicationUseCase loanApplicationUseCase;
 
     @MockitoBean
+    private IUpdateApplicationUseCase updateApplicationUseCase;
+
+    @MockitoBean
     private LoanApplicationMapper loanApplicationMapper;
+
+    @MockitoBean
+    private UpdateApplicationMapper updateApplicationMapper;
 
     @MockitoBean
     private Validator validator;
@@ -165,6 +171,35 @@ class RouterRestTest {
                 .jsonPath("$.totalPages").isEqualTo(1)
                 .jsonPath("$.content[0].identityDocument").isEqualTo("123456789")
                 .jsonPath("$.content[1].identityDocument").isEqualTo("987654321");
+    }
+
+    @WithMockUser(username = "admin", authorities = {"ASESOR"})
+    @Test
+    void shouldUpdateApplicationSuccessfully() {
+
+        String token = "Bearer jkdsajs";
+        UpdateApplicationRequest request = new UpdateApplicationRequest("APP123", 3);
+        UpdateStateApplication model = UpdateStateApplication.builder()
+                .idApplication("APP123")
+                .idState(3)
+                .build();
+
+        String expectedMessage = "Application updated successfully";
+
+        when(jwtProvider.getSubject(anyString())).thenReturn("123456789");
+        when(updateApplicationMapper.toModel(request)).thenReturn(model);
+        when(updateApplicationUseCase.updateApplication(eq(model), anyString()))
+                .thenReturn(Mono.just(expectedMessage));
+
+        client.put()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/api/v1/solicitud")
+                        .build())
+                .header(HttpHeaders.AUTHORIZATION, token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(request)
+                .exchange()
+                .expectStatus().isForbidden();
     }
 }
 

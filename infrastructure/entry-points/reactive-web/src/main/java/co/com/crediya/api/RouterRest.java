@@ -1,8 +1,6 @@
 package co.com.crediya.api;
 
-import co.com.crediya.api.dto.ErrorResponseHandler;
-import co.com.crediya.api.dto.LoanApplicationRequest;
-import co.com.crediya.api.dto.LoanApplicationResponse;
+import co.com.crediya.api.dto.*;
 import co.com.crediya.model.application.dto.PageApplicationResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,8 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
-import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
+import static org.springframework.web.reactive.function.server.RequestPredicates.*;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 
@@ -149,11 +146,65 @@ public class RouterRest {
                                                     schema = @Schema(implementation = ErrorResponseHandler.class)))
                             }
                     )
-            )
+            ),
+            @RouterOperation(method = RequestMethod.PUT,
+                    path = REGISTER_APPLICATION_LOAN,
+                    beanClass = Handler.class,
+                    beanMethod = "listenPutApplicationLoan",
+                    operation = @Operation(operationId = "updatedApplication",
+                            summary = "Update a loan application",
+                            description = "The system receives the application information and sends status confirmation",
+                            requestBody = @RequestBody(required = true,
+                                    content = @Content(mediaType = "application/json",
+                                            schema = @Schema(implementation = UpdateApplicationRequest.class)
+                                    )
+                            ),
+                            responses = {@ApiResponse(responseCode = "200",
+                                    description = "Application updated successfully",
+                                    content = @Content(mediaType = "application/json",
+                                            schema = @Schema(implementation = GenericResponse.class)
+                                    )
+                            ), @ApiResponse(responseCode = "400",
+                                    description = "Invalid request format",
+                                    content = @Content(mediaType = "application/json",
+                                            schema = @Schema(implementation = ErrorResponseHandler.class)
+                                    )
+                            ), @ApiResponse(responseCode = "403",
+                                    description = "Access denied",
+                                    content = @Content(mediaType = "application/json",
+                                            schema = @Schema(implementation = ErrorResponseHandler.class)
+                                    )
+                            ), @ApiResponse(responseCode = "404",
+                                    description = "Not Found: Object not found",
+                                    content = @Content(mediaType = "application/json",
+                                            schema = @Schema(implementation = ErrorResponseHandler.class),
+                                            examples = {
+                                                    @ExampleObject(name = "StateNotFound", value = "{\"timestamp\": \"2025-08-26T14:22:56.402Z\",\"status\":404,\"error\":\"NotFoundException\",\"message\":\"State not found\"}"),
+                                                    @ExampleObject(name = "ApplicationNotFound", value = "{\"timestamp\": \"2025-08-26T14:22:56.402Z\",\"status\":404,\"error\":\"NotFoundException\",\"message\":\"Application not found\"}")
+                                            }
+                                    )
+                            ), @ApiResponse(responseCode = "409",
+                                    description = "Conflict: Business rule",
+                                    content = @Content(mediaType = "application/json",
+                                            schema = @Schema(implementation = ErrorResponseHandler.class),
+                                            examples = {
+                                                    @ExampleObject(name = "StateConflict", value = "{\"timestamp\": \"2025-08-26T14:22:56.402Z\",\"status\":409,\"error\":\"BusinessException\",\"message\":\"The state to update is not valid\"}"),
+                                                    @ExampleObject(name = "ApplicationStateConflict", value = "{\"timestamp\": \"2025-08-26T14:22:56.402Z\",\"status\":409,\"error\":\"BusinessException\",\"message\":\"The application status is already approved or rejected\"}")
+                                            }
+                                    )
+                            ), @ApiResponse(responseCode = "500",
+                                    description = "Internal server error",
+                                    content = @Content(mediaType = "application/json",
+                                            schema = @Schema(implementation = ErrorResponseHandler.class)
+                                    )
+                            )}
+                    )
+            ),
     })
     public RouterFunction<ServerResponse> routerFunction(Handler handler) {
         return route(POST(REGISTER_APPLICATION_LOAN), handler::listenPOSTApplicationLoan)
-                .andRoute(GET(REGISTER_APPLICATION_LOAN), handler::listenGetApplicationLoan);
+                .andRoute(GET(REGISTER_APPLICATION_LOAN), handler::listenGetApplicationLoan)
+                .andRoute(PUT(REGISTER_APPLICATION_LOAN), handler::listenPutApplicationLoan);
 
     }
 }

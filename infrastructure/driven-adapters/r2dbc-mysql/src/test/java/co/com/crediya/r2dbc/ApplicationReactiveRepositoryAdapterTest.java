@@ -1,6 +1,7 @@
 package co.com.crediya.r2dbc;
 
 import co.com.crediya.model.application.Application;
+import co.com.crediya.model.application.UpdateStateApplication;
 import co.com.crediya.model.application.dto.LoanApplicationView;
 import co.com.crediya.model.loantype.LoanType;
 import co.com.crediya.model.state.State;
@@ -147,5 +148,76 @@ class ApplicationReactiveRepositoryAdapterTest {
 
         verify(repository).countByStatusIn(status);
     }
+
+    @Test
+    void shouldReturnTrueWhenApplicationExists() {
+        // Arrange
+        String id = "APP-001";
+        when(repository.existsApplicationByIdApplication(id)).thenReturn(Mono.just(true));
+
+        // Act
+        Mono<Boolean> result = adapter.existsApplication(id);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectNext(true)
+                .verifyComplete();
+
+        verify(repository).existsApplicationByIdApplication(id);
+    }
+
+    @Test
+    void shouldReturnApplicationByIdSuccessfully() {
+        // Arrange
+        String id = "APP-001";
+        when(repository.findById(id)).thenReturn(Mono.just(entity));
+        when(mapper.toDomain(entity)).thenReturn(application);
+
+        // Act
+        Mono<Application> result = adapter.getApplication(id);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectNext(application)
+                .verifyComplete();
+
+        verify(repository).findById(id);
+        verify(mapper).toDomain(entity);
+    }
+
+    @Test
+    void shouldUpdateApplicationStateSuccessfully() {
+        // Arrange
+        UpdateStateApplication update = UpdateStateApplication.builder()
+                .idApplication("APP-001")
+                .idState(3)
+                .build();
+
+        ApplicationEntity updatedEntity = entity;
+            updatedEntity.builder()
+                .idState(3)
+                .build();
+
+        Application updatedDomain = application.toBuilder()
+                .state(State.builder().idState(3).build())
+                .build();
+
+        when(repository.findById("APP-001")).thenReturn(Mono.just(entity));
+        when(repository.save(updatedEntity)).thenReturn(Mono.just(updatedEntity));
+        when(mapper.toDomain(updatedEntity)).thenReturn(updatedDomain);
+
+        // Act
+        Mono<Application> result = adapter.updateApplication(update);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectNext(updatedDomain)
+                .verifyComplete();
+
+        verify(repository).findById("APP-001");
+        verify(repository).save(updatedEntity);
+        verify(mapper).toDomain(updatedEntity);
+    }
+
 
 }
