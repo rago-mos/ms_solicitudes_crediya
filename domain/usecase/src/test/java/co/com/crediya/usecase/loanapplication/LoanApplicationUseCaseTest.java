@@ -139,7 +139,6 @@ class LoanApplicationUseCaseTest {
 
         Mono<PageApplicationResponse<LoanApplicationView>> result = useCase.getLoanApplication(status, page, size, token);
 
-        // Assert
         StepVerifier.create(result)
                 .assertNext(response -> {
                     assertThat(response.getPage()).isEqualTo(page);
@@ -168,37 +167,74 @@ class LoanApplicationUseCaseTest {
     }
 
     @Test
-    void shouldReturnPageWithoutEnrichmentWhenNoDocuments() {
-        // Arrange
+    void shouldIgnoreDuplicateDocumentsAndEnrichOnce() {
+        List<Integer> status = List.of(1);
+        int page = 1;
+        int size = 10;
+        String token = "abc123";
+
+        LoanApplicationView view1 = LoanApplicationView.builder()
+                .identityDocument("123456789")
+                .amount(new BigDecimal("1000000"))
+                .monthTerm(12)
+                .build();
+
+        LoanApplicationView view2 = view1.toBuilder().identityDocument("123456789").build(); // mismo documento
+
+        UserApplication user = UserApplication.builder()
+                .identityDocument("123456789")
+                .firstName("Rubén")
+                .lastName("Tester")
+                .email("ruben@example.com")
+                .baseSalary(new BigDecimal("3000000"))
+                .build();
+
+        when(applicationRepository.countByStatus(status)).thenReturn(Mono.just(2L));
+        when(applicationRepository.findLoanApplicationDetails(status, size, 0)).thenReturn(Flux.just(view1, view2));
+        when(userClientRepository.getUsersByDocuments(List.of("123456789"), token)).thenReturn(Flux.just(user));
+
+        Mono<PageApplicationResponse<LoanApplicationView>> result = useCase.getLoanApplication(status, page, size, token);
+
+        StepVerifier.create(result)
+                .assertNext(response -> {
+                    assertThat(response.getContent()).hasSize(2);
+                    response.getContent().forEach(app -> {
+                        assertThat(app.getEmail()).isEqualTo("ruben@example.com");
+                        assertThat(app.getFullName()).isEqualTo("Rubén Tester");
+                    });
+                })
+                .verifyComplete();
+
+        verify(userClientRepository).getUsersByDocuments(List.of("123456789"), token);
+    }
+
+    @Test
+    void shouldReturnUnenrichedApplicationsWhenUsersNotFound() {
         List<Integer> status = List.of(1);
         int page = 1;
         int size = 10;
         String token = "abc123";
 
         LoanApplicationView view = LoanApplicationView.builder()
-                .identityDocument(null) // sin documento
+                .identityDocument("000000000")
                 .amount(new BigDecimal("500000"))
                 .monthTerm(6)
                 .build();
 
         when(applicationRepository.countByStatus(status)).thenReturn(Mono.just(1L));
         when(applicationRepository.findLoanApplicationDetails(status, size, 0)).thenReturn(Flux.just(view));
+        when(userClientRepository.getUsersByDocuments(List.of("000000000"), token)).thenReturn(Flux.empty());
 
-        // Act
         Mono<PageApplicationResponse<LoanApplicationView>> result = useCase.getLoanApplication(status, page, size, token);
 
-        // Assert
         StepVerifier.create(result)
                 .assertNext(response -> {
                     assertThat(response.getContent()).hasSize(1);
-                    assertThat(response.getContent().get(0).getIdentityDocument()).isNull();
-                    assertThat(response.getTotalElements()).isEqualTo(1L);
-                    assertThat(response.getTotalPages()).isEqualTo(1);
+                    assertThat(response.getContent().get(0).getEmail()).isNull();
+                    assertThat(response.getContent().get(0).getFullName()).isNull();
                 })
                 .verifyComplete();
-
-        verify(applicationRepository).countByStatus(status);
-        verify(applicationRepository).findLoanApplicationDetails(status, size, 0);
-        verifyNoInteractions(userClientRepository);
     }
+
+
 }

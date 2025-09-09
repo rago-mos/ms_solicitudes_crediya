@@ -12,6 +12,7 @@ import co.com.crediya.model.state.gateways.StateRepository;
 import co.com.crediya.model.user.UserApplication;
 import co.com.crediya.usecase.loanapplication.validator.LoanApplicationValidator;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -52,51 +53,68 @@ public class LoanApplicationUseCase implements ILoanApplicationUseCase {
     public Mono<PageApplicationResponse<LoanApplicationView>> getLoanApplication(List<Integer> status, int page, int size, String token) {
         int offset = (page - 1) * size;
 
-        return applicationRepository.countByStatus(status)
-                .flatMap(totalElements ->
-                        applicationRepository.findLoanApplicationDetails(status, size, offset)
-                                .collectList()
-                                .flatMap(content -> buildResponse(content, totalElements, page, size, token))
-                );
+        Mono<Long> totalElementsQuery = applicationRepository.countByStatus(status);
+        Mono<List<LoanApplicationView>> contentApplicationTransform =
+                applicationRepository.findLoanApplicationDetails(status, size, offset).collectList();
+
+        return Mono.zip(totalElementsQuery, contentApplicationTransform)
+                .flatMap(tuple -> {
+                    Long totalElements = tuple.getT1();
+                    List<LoanApplicationView> content = tuple.getT2();
+                    return buildResponse(Flux.fromIterable(content), totalElements, page, size, token);
+                });
     }
 
-    private Mono<PageApplicationResponse<LoanApplicationView>> buildResponse(List<LoanApplicationView> content, long totalElements, int page, int size, String token) {
-        List<String> documents = extractDocuments(content);
+    private Mono<PageApplicationResponse<LoanApplicationView>> buildResponse(Flux<LoanApplicationView> content,
+                                                                             long totalElements, int page,
+                                                                             int size, String token) {
+        Mono<List<LoanApplicationView>> contentList = content.collectList();
 
-        if (documents.isEmpty()) {
-            int totalPages = calculateTotalPages(totalElements, size);
-            return Mono.just(new PageApplicationResponse<>(content, page, size, totalElements, totalPages));
-        }
-
-        return userClientRepository.getUsersByDocuments(documents, token)
-                .collectMap(UserApplication::getIdentityDocument)
-                .map(users -> enrichApplications(content, users, page, size, totalElements));
-    }
-
-    private List<String> extractDocuments(List<LoanApplicationView> content) {
-        return content.stream()
+        Mono<List<String>> documentsList = content
                 .map(LoanApplicationView::getIdentityDocument)
                 .filter(Objects::nonNull)
                 .distinct()
-                .toList();
+                .collectList();
+
+        return Mono.zip(contentList, documentsList)
+                .flatMap(tuple -> {
+                    List<LoanApplicationView> viewList = tuple.getT1();
+                    List<String> documents = tuple.getT2();
+
+                    if (documents.isEmpty()) {
+                        int totalPages = calculateTotalPages(totalElements, size);
+                        return Mono.just(new PageApplicationResponse<>(viewList, page, size, totalElements, totalPages));
+                    }
+
+                    return userClientRepository.getUsersByDocuments(documents, token)
+                            .collectMap(UserApplication::getIdentityDocument)
+                            .flatMap(users -> enrichApplications(Flux.fromIterable
+                                    (viewList), users, page, size, totalElements));
+                });
     }
 
-    private PageApplicationResponse<LoanApplicationView> enrichApplications(List<LoanApplicationView> content,
-                                                                            Map<String, UserApplication> users,
-                                                                            int page, int size, long totalElements) {
-        List<LoanApplicationView> enriched = content.stream()
+    private Mono<PageApplicationResponse<LoanApplicationView>> enrichApplications(
+            Flux<LoanApplicationView> contentFlux,
+            Map<String, UserApplication> users,
+            int page, int size,
+            long totalElements) {
+
+        return contentFlux
                 .map(application -> {
                     UserApplication user = users.get(application.getIdentityDocument());
-                    return application.toBuilder()
+                    return user == null
+                            ? application
+                            : application.toBuilder()
                             .email(user.getEmail())
                             .baseSalary(user.getBaseSalary())
                             .fullName(user.getFirstName() + " " + user.getLastName())
                             .build();
                 })
-                .toList();
-
-        int totalPages = calculateTotalPages(totalElements, size);
-        return new PageApplicationResponse<>(enriched, page, size, totalElements, totalPages);
+                .collectList()
+                .map(enriched -> {
+                    int totalPages = calculateTotalPages(totalElements, size);
+                    return new PageApplicationResponse<>(enriched, page, size, totalElements, totalPages);
+                });
     }
 
     private int calculateTotalPages(long totalElements, int size) {
