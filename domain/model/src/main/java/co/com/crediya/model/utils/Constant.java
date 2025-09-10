@@ -15,8 +15,9 @@ public class Constant {
     public static final String LOG_VALIDATING_USER = "Validating user by document number: {}";
     public static final String LOG_QUERY_USER = "Service: Querying users by document";
     public static final String LOG_INFO_RESULT_APPLICATIONS = "Satisfactory query with this number of elements: {}";
-
     public static final String LOG_DEBUG_SQS_SEND = "Message sent {}";
+
+    public static final String STATUS_OK = "CODE_001";
 
     public static final String ERROR_BAD_TOKEN = "bad token";
     public static final String ERROR_JSON_PROCESSING = "Error serializing message";

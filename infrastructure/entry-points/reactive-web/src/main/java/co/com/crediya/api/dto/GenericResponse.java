@@ -12,6 +12,6 @@ import java.time.LocalDateTime;
 public class GenericResponse {
 
     private LocalDateTime timestamp;
-    private Integer status;
+    private String status;
     private String messagge;
 }

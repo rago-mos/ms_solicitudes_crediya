@@ -266,7 +266,7 @@ public class Handler {
                     var model = updateApplicationMapper.toModel(validated);
                     return updateApplicationUseCase.updateApplication(model, token)
                             .flatMap(created -> {
-                                var response = new GenericResponse(LocalDateTime.now(), HttpStatus.OK.value(), created);
+                                var response = new GenericResponse(LocalDateTime.now(), STATUS_OK, created);
                                 log.info(LOG_INFO_UPDATE, created);
                                 return ServerResponse.status(HttpStatus.OK).bodyValue(response);
                             });
