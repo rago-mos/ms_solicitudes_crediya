@@ -134,7 +134,6 @@ public class Handler {
                             name = "status",
                             description = "List of statuses",
                             in = ParameterIn.QUERY,
-                            required = false,
                             example = "1,2,3",
                             schema = @Schema(type = "array")
                     ),
@@ -142,7 +141,6 @@ public class Handler {
                             name = "size",
                             description = "Number of records",
                             in = ParameterIn.QUERY,
-                            required = false,
                             example = "10",
                             schema = @Schema(type = "integer")
                     ),
@@ -150,7 +148,6 @@ public class Handler {
                             name = "page",
                             description = "Selected page",
                             in = ParameterIn.QUERY,
-                            required = false,
                             example = "1",
                             schema = @Schema(type = "integer")
                     )
