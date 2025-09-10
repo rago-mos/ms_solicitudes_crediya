@@ -13,5 +13,5 @@ public class GenericResponse {
 
     private LocalDateTime timestamp;
     private String status;
-    private String messagge;
+    private String message;
 }
