@@ -7,9 +7,9 @@ import java.util.Optional;
 
 public enum StateEnum {
 
-    PENDIENTE_REVISION(1, "PENDIENTE_REVISION"),
+    PENDIENTE_REVISION(1, "PENDIENTE REVISION"),
     RECHAZADA(2, "RECHAZADA"),
-    REVISION_MANUAL(3, "REVISION_MANUAL"),
+    REVISION_MANUAL(3, "REVISION MANUAL"),
     APROBADA(4, "APROBADA");
 
     private final int id;
