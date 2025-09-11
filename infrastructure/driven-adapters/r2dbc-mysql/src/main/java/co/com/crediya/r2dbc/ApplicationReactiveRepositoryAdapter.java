@@ -1,7 +1,7 @@
 package co.com.crediya.r2dbc;
 
 import co.com.crediya.model.application.Application;
-import co.com.crediya.model.application.UpdateStateApplication;
+import co.com.crediya.model.application.StateApplication;
 import co.com.crediya.model.application.dto.LoanApplicationView;
 import co.com.crediya.model.application.gateways.ApplicationRepository;
 import co.com.crediya.r2dbc.entities.ApplicationEntity;
@@ -54,7 +54,7 @@ public class ApplicationReactiveRepositoryAdapter extends ReactiveAdapterOperati
     }
 
     @Override
-    public Mono<Application> updateApplication(UpdateStateApplication application) {
+    public Mono<Application> updateApplication(StateApplication application) {
         return repository.findById(application.getIdApplication())
                 .flatMap(applicationEntity -> {
                     applicationEntity.setIdState(application.getIdState());

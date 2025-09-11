@@ -16,8 +16,10 @@ public class Constant {
     public static final String LOG_QUERY_USER = "Service: Querying users by document";
     public static final String LOG_INFO_RESULT_APPLICATIONS = "Satisfactory query with this number of elements: {}";
     public static final String LOG_DEBUG_SQS_SEND = "Message sent {}";
+    public static final String LOG_ERROR_SERVICE_UNAVAILABLE = "Fallback triggered for operation [{}] due to: {}";
 
     public static final String STATUS_OK = "CODE_001";
+    public static final String STATUS_ERROR = "CODE_003";
 
     public static final String ERROR_BAD_TOKEN = "bad token";
     public static final String ERROR_JSON_PROCESSING = "Error serializing message";
@@ -29,6 +31,7 @@ public class Constant {
     public static final String ERROR_NOT_FOUND_APPLICATION = "Application not found";
     public static final String ERROR_BUSINNESS_UPDATE_STATE_APPLICATION = "The state to update is not valid";
     public static final String ERROR_BUSINNESS_UPDATE_STATE_APPLICATION_ALREADY = "The application status is already approved or rejected";
+    public static final String ERROR_SERVICE_UNAVAILABLE = "Authentication service is currently unavailable";
 
     public static final String URL_CONSUMER_USER_DOCUMENT = "/api/v1/usuarios/{documentIdentity}";
     public static final String URL_CONSUMER_USER_APPLICATION = "/api/v1/usuarioSolicitudes";
