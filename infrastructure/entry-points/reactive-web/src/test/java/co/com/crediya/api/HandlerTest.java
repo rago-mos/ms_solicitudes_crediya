@@ -2,11 +2,11 @@ package co.com.crediya.api;
 
 import co.com.crediya.api.dto.LoanApplicationRequest;
 import co.com.crediya.api.dto.LoanApplicationResponse;
-import co.com.crediya.api.dto.UpdateApplicationRequest;
+import co.com.crediya.api.dto.ApplicationRequest;
 import co.com.crediya.api.mapper.LoanApplicationMapper;
 import co.com.crediya.api.mapper.UpdateApplicationMapper;
 import co.com.crediya.model.application.Application;
-import co.com.crediya.model.application.UpdateStateApplication;
+import co.com.crediya.model.application.StateApplication;
 import co.com.crediya.security.provider.JwtProvider;
 import co.com.crediya.usecase.loanapplication.ILoanApplicationUseCase;
 import co.com.crediya.usecase.loanapplication.IUpdateApplicationUseCase;
@@ -146,8 +146,8 @@ class HandlerTest {
     void shouldHandlePutApplicationLoanSuccessfully() {
 
         String token = "Bearer abc123";
-        UpdateApplicationRequest request = new UpdateApplicationRequest("APP001", 3);
-        UpdateStateApplication model = UpdateStateApplication.builder()
+        ApplicationRequest request = new ApplicationRequest("APP001", 3);
+        StateApplication model = StateApplication.builder()
                 .idApplication("APP001")
                 .idState(3)
                 .build();
@@ -179,7 +179,7 @@ class HandlerTest {
     void shouldReturnErrorWhenRequestIsInvalid() {
 
         String token = "Bearer abc123";
-        UpdateApplicationRequest invalidRequest = new UpdateApplicationRequest(null, null);
+        ApplicationRequest invalidRequest = new ApplicationRequest(null, null);
 
         ServerRequest serverRequest = MockServerRequest.builder()
                 .method(HttpMethod.PUT)
@@ -187,8 +187,8 @@ class HandlerTest {
                 .header(HttpHeaders.AUTHORIZATION, token)
                 .body(Mono.just(invalidRequest));
 
-        ConstraintViolation<UpdateApplicationRequest> violation1 = mock(ConstraintViolation.class);
-        ConstraintViolation<UpdateApplicationRequest> violation2 = mock(ConstraintViolation.class);
+        ConstraintViolation<ApplicationRequest> violation1 = mock(ConstraintViolation.class);
+        ConstraintViolation<ApplicationRequest> violation2 = mock(ConstraintViolation.class);
 
         when(violation1.getPropertyPath()).thenReturn(PathImpl.createPathFromString("idApplication"));
         when(violation1.getMessage()).thenReturn("The field is mandatory");
@@ -196,7 +196,7 @@ class HandlerTest {
         when(violation2.getPropertyPath()).thenReturn(PathImpl.createPathFromString("idState"));
         when(violation2.getMessage()).thenReturn("The field is mandatory");
 
-        Set<ConstraintViolation<UpdateApplicationRequest>> violations = Set.of(violation1, violation2);
+        Set<ConstraintViolation<ApplicationRequest>> violations = Set.of(violation1, violation2);
         when(validator.validate(invalidRequest)).thenReturn(violations);
 
         Mono<ServerResponse> responseMono = handler.listenPutApplicationLoan(serverRequest);
@@ -214,8 +214,8 @@ class HandlerTest {
     void shouldUpdateApplicationWithoutValidationWhenStateIsNotThree() {
 
         String token = "Bearer abc123";
-        UpdateApplicationRequest request = new UpdateApplicationRequest("APP002", 2);
-        UpdateStateApplication model = UpdateStateApplication.builder()
+        ApplicationRequest request = new ApplicationRequest("APP002", 2);
+        StateApplication model = StateApplication.builder()
                 .idApplication("APP002")
                 .idState(2)
                 .build();

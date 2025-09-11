@@ -1,5 +1,6 @@
 package co.com.crediya.api.exception;
 
+import co.com.crediya.model.exception.AuthenticationServiceUnavailableException;
 import co.com.crediya.model.exception.BusinessException;
 import co.com.crediya.model.exception.InvalidRequestException;
 import co.com.crediya.model.exception.NotFoundException;
@@ -65,10 +66,7 @@ class GlobalExceptionHandlerTest {
 
         Mono<Void> result = handler.handle(exchange, ex);
 
-        // Verifica que se haya configurado el código de estado
         verify(response).setStatusCode(HttpStatus.CONFLICT);
-
-        // Verifica que se haya escrito el buffer
         verify(response).writeWith(any());
 
     }
@@ -79,12 +77,18 @@ class GlobalExceptionHandlerTest {
 
         Mono<Void> result = handler.handle(exchange, ex);
 
-        // Verifica que se haya configurado el código de estado
         verify(response).setStatusCode(HttpStatus.NOT_FOUND);
-
-        // Verifica que se haya escrito el buffer
         verify(response).writeWith(any());
+    }
 
+    @Test
+    void shouldHandleAuthenticationServiceUnavailableException() {
+        AuthenticationServiceUnavailableException ex = new AuthenticationServiceUnavailableException("Service unavailable");
+
+        Mono<Void> result = handler.handle(exchange, ex);
+
+        verify(response).setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+        verify(response).writeWith(any());
     }
 
     @Test

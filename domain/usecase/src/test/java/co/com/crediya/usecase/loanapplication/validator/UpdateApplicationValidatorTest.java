@@ -1,7 +1,7 @@
 package co.com.crediya.usecase.loanapplication.validator;
 
 import co.com.crediya.model.application.Application;
-import co.com.crediya.model.application.UpdateStateApplication;
+import co.com.crediya.model.application.StateApplication;
 import co.com.crediya.model.application.gateways.ApplicationRepository;
 import co.com.crediya.model.exception.BusinessException;
 import co.com.crediya.model.exception.NotFoundException;
@@ -34,7 +34,7 @@ class UpdateApplicationValidatorTest {
         validator = new UpdateApplicationValidator(stateRepository, applicationRepository);
     }
 
-    private final UpdateStateApplication validRequest = UpdateStateApplication.builder()
+    private final StateApplication validRequest = StateApplication.builder()
             .idApplication("APP001")
             .idState(2)
             .build();
@@ -113,7 +113,7 @@ class UpdateApplicationValidatorTest {
 
     @Test
     void shouldFailWhenNewStateIsPendingReview() {
-        UpdateStateApplication invalidRequest = validRequest.toBuilder().idState(1).build();
+        StateApplication invalidRequest = validRequest.toBuilder().idState(1).build();
 
         Application application = Application.builder()
                 .idApplication("APP001")

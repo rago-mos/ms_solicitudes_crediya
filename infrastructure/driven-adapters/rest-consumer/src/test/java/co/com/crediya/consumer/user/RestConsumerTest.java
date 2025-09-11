@@ -1,7 +1,9 @@
 package co.com.crediya.consumer.user;
 
 
+import co.com.crediya.consumer.exception.AuthenticationFallbackHandler;
 import co.com.crediya.consumer.user.mapper.UserRestMapper;
+import co.com.crediya.model.exception.AuthenticationServiceUnavailableException;
 import co.com.crediya.model.user.UserApplication;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -17,12 +19,16 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -32,6 +38,8 @@ class RestConsumerTest {
     private MockWebServer mockBackEnd;
     @Mock
     private UserRestMapper userRestMapper;
+    @Mock
+    private AuthenticationFallbackHandler fallbackHandler;
 
     @BeforeEach
     void setUp() throws IOException {
@@ -40,7 +48,7 @@ class RestConsumerTest {
         WebClient webClient = WebClient.builder()
                 .baseUrl(mockBackEnd.url("/").toString())
                 .build();
-        restConsumer = new RestConsumer(webClient, userRestMapper);
+        restConsumer = new RestConsumer(webClient, userRestMapper,  fallbackHandler);
     }
 
     @AfterEach
@@ -160,4 +168,44 @@ class RestConsumerTest {
         Assertions.assertThat(request.getHeader(HttpHeaders.AUTHORIZATION)).isEqualTo("Bearer " + token);
         Assertions.assertThat(request.getBody().readUtf8()).contains("123456789", "987654321");
     }
+    @Test
+    void shouldDelegateToFallbackHandlerForGetUsersByDocuments() {
+
+        Throwable originalException = new RuntimeException("Timeout");
+        Flux<UserApplication> expected = Flux.error(new AuthenticationServiceUnavailableException("Fallback"));
+
+        when(fallbackHandler.<UserApplication>fallbackFlux(eq("getUsersByDocuments"), any(Throwable.class)))
+                .thenReturn(expected);
+
+        Flux<UserApplication> result = restConsumer.fallbackGetUsersByDocuments(List.of("123"), "token", originalException);
+
+        StepVerifier.create(result)
+                .expectErrorMatches(error ->
+                        error instanceof AuthenticationServiceUnavailableException
+                )
+                .verify();
+
+        verify(fallbackHandler).fallbackFlux("getUsersByDocuments", originalException);
+    }
+
+    @Test
+    void shouldDelegateToFallbackHandlerForUserExistsByDocument() {
+
+        Throwable originalException = new IllegalStateException("Connection refused");
+        Mono<Boolean> expected = Mono.error(new AuthenticationServiceUnavailableException("Fallback"));
+
+        when(fallbackHandler.<Boolean>fallbackMono(eq("userExistsByDocument"), any(Throwable.class)))
+                .thenReturn(expected);
+
+        Mono<Boolean> result = restConsumer.fallbackUserExistsByDocument("ABC123", "token", originalException);
+
+        StepVerifier.create(result)
+                .expectErrorMatches(error ->
+                        error instanceof AuthenticationServiceUnavailableException
+                )
+                .verify();
+
+        verify(fallbackHandler).fallbackMono("userExistsByDocument", originalException);
+    }
+
 }
