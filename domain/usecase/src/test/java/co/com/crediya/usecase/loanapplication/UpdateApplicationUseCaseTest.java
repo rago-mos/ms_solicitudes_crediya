@@ -1,7 +1,7 @@
 package co.com.crediya.usecase.loanapplication;
 
 import co.com.crediya.model.application.Application;
-import co.com.crediya.model.application.UpdateStateApplication;
+import co.com.crediya.model.application.StateApplication;
 import co.com.crediya.model.application.dto.UpdateApplicationView;
 import co.com.crediya.model.application.gateways.ApplicationRepository;
 import co.com.crediya.model.application.gateways.SqsMessageRepository;
@@ -22,7 +22,6 @@ import reactor.test.StepVerifier;
 import java.math.BigDecimal;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -47,7 +46,7 @@ class UpdateApplicationUseCaseTest {
     @Test
     void shouldUpdateApplicationDirectlyWhenStateIsThree() {
 
-        UpdateStateApplication update = UpdateStateApplication.builder()
+        StateApplication update = StateApplication.builder()
                 .idApplication("APP001")
                 .idState(3)
                 .build();
@@ -72,7 +71,7 @@ class UpdateApplicationUseCaseTest {
     @Test
     void shouldUpdateApplicationAndSendMessageWhenStateIsNotThree() {
 
-        UpdateStateApplication update = UpdateStateApplication.builder()
+        StateApplication update = StateApplication.builder()
                 .idApplication("APP001")
                 .idState(2)
                 .build();

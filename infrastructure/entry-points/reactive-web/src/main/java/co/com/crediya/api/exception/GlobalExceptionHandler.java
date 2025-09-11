@@ -1,6 +1,7 @@
 package co.com.crediya.api.exception;
 
 import co.com.crediya.api.dto.ErrorResponseHandler;
+import co.com.crediya.model.exception.AuthenticationServiceUnavailableException;
 import co.com.crediya.model.exception.BusinessException;
 import co.com.crediya.model.exception.InvalidRequestException;
 import co.com.crediya.model.exception.NotFoundException;
@@ -26,6 +27,8 @@ import reactor.core.publisher.Mono;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
+import static co.com.crediya.model.utils.Constant.STATUS_ERROR;
+
 
 @Slf4j
 @Component
@@ -47,7 +50,7 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler, Ordered
 
         ErrorResponseHandler errorBody = ErrorResponseHandler.builder()
                 .timestamp(LocalDateTime.now())
-                .status(status.value())
+                .status(STATUS_ERROR)
                 .error(ex.getClass().getSimpleName())
                 .message(ex.getMessage())
                 .build();
@@ -77,6 +80,7 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler, Ordered
         if (ex instanceof BusinessException) return HttpStatus.CONFLICT;
         if (ex instanceof InvalidRequestException) return HttpStatus.BAD_REQUEST;
         if (ex instanceof NotFoundException) return HttpStatus.NOT_FOUND;
+        if (ex instanceof AuthenticationServiceUnavailableException) return HttpStatus.SERVICE_UNAVAILABLE;
         return HttpStatus.INTERNAL_SERVER_ERROR;
     }
 

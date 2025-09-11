@@ -1,15 +1,15 @@
 package co.com.crediya.api.mapper;
 
-import co.com.crediya.api.dto.UpdateApplicationRequest;
-import co.com.crediya.model.application.UpdateStateApplication;
+import co.com.crediya.api.dto.ApplicationRequest;
+import co.com.crediya.model.application.StateApplication;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UpdateApplicationMapper {
 
-    public UpdateStateApplication toModel(UpdateApplicationRequest request) {
+    public StateApplication toModel(ApplicationRequest request) {
 
-        return UpdateStateApplication.builder()
+        return StateApplication.builder()
                 .idApplication(request.idApplication())
                 .idState(request.idState())
                 .build();

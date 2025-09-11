@@ -1,6 +1,6 @@
 package co.com.crediya.usecase.loanapplication.validator;
 
-import co.com.crediya.model.application.UpdateStateApplication;
+import co.com.crediya.model.application.StateApplication;
 import co.com.crediya.model.application.gateways.ApplicationRepository;
 import co.com.crediya.model.exception.BusinessException;
 import co.com.crediya.model.exception.NotFoundException;
@@ -16,7 +16,7 @@ public class UpdateApplicationValidator {
     private final StateRepository stateRepository;
     private final ApplicationRepository applicationRepository;
 
-    public Mono<Void> validate(UpdateStateApplication application) {
+    public Mono<Void> validate(StateApplication application) {
         return validateExistsState(application)
                 .then(validateExistsApplication(application))
                 .then(validateApplicationState(application))
@@ -26,7 +26,7 @@ public class UpdateApplicationValidator {
     /**
      * @use Válida que el estado exista
      */
-    private Mono<Void> validateExistsState(UpdateStateApplication application) {
+    private Mono<Void> validateExistsState(StateApplication application) {
         return stateRepository.existsState(application.getIdState())
                 .flatMap(exists -> Boolean.TRUE.equals(exists)
                         ? Mono.empty()
@@ -36,7 +36,7 @@ public class UpdateApplicationValidator {
     /**
      * @use Válida que la solicitud exista
      */
-    private Mono<Void> validateExistsApplication(UpdateStateApplication application) {
+    private Mono<Void> validateExistsApplication(StateApplication application) {
         return applicationRepository.existsApplication(application.getIdApplication())
                 .flatMap(exists -> Boolean.TRUE.equals(exists)
                         ? Mono.empty()
@@ -46,7 +46,7 @@ public class UpdateApplicationValidator {
     /**
      * @use Válida que el estado que llega desde el request sea diferente a PENDIENTE_REVISION
      */
-    private Mono<Void> validateState(UpdateStateApplication application) {
+    private Mono<Void> validateState(StateApplication application) {
         return Mono.justOrEmpty(application)
                 .handle((app, sink) -> {
                     if (app.getIdState() == 1) {
@@ -60,7 +60,7 @@ public class UpdateApplicationValidator {
     /**
      * @use Válida que la solicitud que se quiere actualizar ya no este en estado APROBADO o RECHAZADO
      */
-    private Mono<Void>  validateApplicationState(UpdateStateApplication application) {
+    private Mono<Void>  validateApplicationState(StateApplication application) {
         return applicationRepository.getApplication(application.getIdApplication())
                 .flatMap(result ->  Mono.justOrEmpty(result)
                         .handle((app, sink) -> {

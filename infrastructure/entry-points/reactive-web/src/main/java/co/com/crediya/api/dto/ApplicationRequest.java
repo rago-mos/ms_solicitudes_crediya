@@ -2,7 +2,7 @@ package co.com.crediya.api.dto;
 
 import jakarta.validation.constraints.NotNull;
 
-public record UpdateApplicationRequest(
+public record ApplicationRequest(
 
         @NotNull(message = "The field is mandatory")
         String idApplication,

@@ -1,7 +1,7 @@
 package co.com.crediya.r2dbc;
 
 import co.com.crediya.model.application.Application;
-import co.com.crediya.model.application.UpdateStateApplication;
+import co.com.crediya.model.application.StateApplication;
 import co.com.crediya.model.application.dto.LoanApplicationView;
 import co.com.crediya.model.loantype.LoanType;
 import co.com.crediya.model.state.State;
@@ -188,7 +188,7 @@ class ApplicationReactiveRepositoryAdapterTest {
     @Test
     void shouldUpdateApplicationStateSuccessfully() {
         // Arrange
-        UpdateStateApplication update = UpdateStateApplication.builder()
+        StateApplication update = StateApplication.builder()
                 .idApplication("APP-001")
                 .idState(3)
                 .build();

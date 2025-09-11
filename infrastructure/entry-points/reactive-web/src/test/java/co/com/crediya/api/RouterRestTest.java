@@ -6,7 +6,7 @@ import co.com.crediya.api.exception.GlobalExceptionHandler;
 import co.com.crediya.api.mapper.LoanApplicationMapper;
 import co.com.crediya.api.mapper.UpdateApplicationMapper;
 import co.com.crediya.model.application.Application;
-import co.com.crediya.model.application.UpdateStateApplication;
+import co.com.crediya.model.application.StateApplication;
 import co.com.crediya.model.application.dto.LoanApplicationView;
 import co.com.crediya.model.application.dto.PageApplicationResponse;
 import co.com.crediya.model.loantype.LoanType;
@@ -178,8 +178,8 @@ class RouterRestTest {
     void shouldUpdateApplicationSuccessfully() {
 
         String token = "Bearer jkdsajs";
-        UpdateApplicationRequest request = new UpdateApplicationRequest("APP123", 3);
-        UpdateStateApplication model = UpdateStateApplication.builder()
+        ApplicationRequest request = new ApplicationRequest("APP123", 3);
+        StateApplication model = StateApplication.builder()
                 .idApplication("APP123")
                 .idState(3)
                 .build();
