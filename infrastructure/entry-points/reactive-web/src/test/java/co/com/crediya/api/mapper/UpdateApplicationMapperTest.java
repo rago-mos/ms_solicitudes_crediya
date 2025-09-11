@@ -1,7 +1,7 @@
 package co.com.crediya.api.mapper;
 
-import co.com.crediya.api.dto.UpdateApplicationRequest;
-import co.com.crediya.model.application.UpdateStateApplication;
+import co.com.crediya.api.dto.ApplicationRequest;
+import co.com.crediya.model.application.StateApplication;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,9 +22,9 @@ class UpdateApplicationMapperTest {
     @Test
     void shouldMapUpdateApplicationRequestToModelCorrectly() {
 
-        UpdateApplicationRequest request = new UpdateApplicationRequest("APP123", 5);
+        ApplicationRequest request = new ApplicationRequest("APP123", 5);
 
-        UpdateStateApplication result = mapper.toModel(request);
+        StateApplication result = mapper.toModel(request);
 
         assertNotNull(result);
         assertEquals("APP123", result.getIdApplication());

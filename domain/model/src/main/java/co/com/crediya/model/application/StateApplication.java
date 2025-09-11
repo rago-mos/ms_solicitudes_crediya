@@ -7,7 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class UpdateStateApplication {
+public class StateApplication {
 
     private String idApplication;
     private Integer idState;

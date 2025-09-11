@@ -107,20 +107,18 @@ public class Handler {
                     if (!loanRequest.identityDocument().equals(subjectFromToken)) {
                         log.warn(LOG_WARN_FORBIDDEN, subjectFromToken, loanRequest.identityDocument());
                         return ServerResponse.status(HttpStatus.FORBIDDEN).bodyValue(new ErrorResponseHandler(
-                                LocalDateTime.now(), 403,
+                                LocalDateTime.now(), STATUS_ERROR,
                                 FORBIDDEN,
                                 MESSAGE_ERROR_FORBIDDEN));
                     }
 
                     return RequestValidator.validate(loanRequest, validator)
-                            .flatMap(validated -> {
-                                var model = loanApplicationMapper.toModel(validated);
-                                return loanApplicationUseCase.registerLoanApplication(model, token)
-                                        .flatMap(created -> {
-                                            LoanApplicationResponse response = loanApplicationMapper.toResponse(created);
-                                            log.info(LOG_INFO_CREATED, response);
-                                            return ServerResponse.status(HttpStatus.CREATED).bodyValue(response);
-                                        });
+                            .map(loanApplicationMapper::toModel)
+                            .flatMap(application -> loanApplicationUseCase.registerLoanApplication(application, token))
+                            .flatMap(created -> {
+                                LoanApplicationResponse response = loanApplicationMapper.toResponse(created);
+                                log.info(LOG_INFO_CREATED, response);
+                                return ServerResponse.status(HttpStatus.CREATED).bodyValue(response);
                             });
                 });
     }
@@ -209,7 +207,7 @@ public class Handler {
             description = "The system receives the application information and sends status confirmation",
             requestBody = @RequestBody(required = true,
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = UpdateApplicationRequest.class)
+                            schema = @Schema(implementation = ApplicationRequest.class)
                     )
             ),
             responses = {@ApiResponse(responseCode = "200",
@@ -257,17 +255,17 @@ public class Handler {
 
         String token = extractToken(request);
 
-        return request.bodyToMono(UpdateApplicationRequest.class)
-                .flatMap(loanRequest -> RequestValidator.validate(loanRequest, validator)
-                .flatMap(validated -> {
-                    var model = updateApplicationMapper.toModel(validated);
-                    return updateApplicationUseCase.updateApplication(model, token)
+        return request.bodyToMono(ApplicationRequest.class)
+                .flatMap(applicationRequest -> RequestValidator.validate(applicationRequest, validator))
+                .map(updateApplicationMapper::toModel)
+                .flatMap(stateApplication ->
+                    updateApplicationUseCase.updateApplication(stateApplication, token)
                             .flatMap(created -> {
                                 var response = new GenericResponse(LocalDateTime.now(), STATUS_OK, created);
                                 log.info(LOG_INFO_UPDATE, created);
                                 return ServerResponse.status(HttpStatus.OK).bodyValue(response);
-                            });
-                }));
+                            })
+                );
     }
 
 }

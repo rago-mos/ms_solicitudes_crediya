@@ -1,7 +1,7 @@
 package co.com.crediya.usecase.loanapplication;
 
 import co.com.crediya.model.application.Application;
-import co.com.crediya.model.application.UpdateStateApplication;
+import co.com.crediya.model.application.StateApplication;
 import co.com.crediya.model.application.dto.UpdateApplicationView;
 import co.com.crediya.model.application.gateways.ApplicationRepository;
 import co.com.crediya.model.application.gateways.SqsMessageRepository;
@@ -26,7 +26,7 @@ public class UpdateApplicationUseCase implements IUpdateApplicationUseCase {
     private final SqsMessageRepository sqsRepository;
 
     @Override
-    public Mono<String> updateApplication(UpdateStateApplication application, String token) {
+    public Mono<String> updateApplication(StateApplication application, String token) {
 
         if (application.getIdState() == 3) {
             return validator.validate(application)
