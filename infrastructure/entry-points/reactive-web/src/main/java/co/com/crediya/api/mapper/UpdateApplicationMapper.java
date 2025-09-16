@@ -1,6 +1,6 @@
 package co.com.crediya.api.mapper;
 
-import co.com.crediya.api.dto.ApplicationRequest;
+import co.com.crediya.api.dto.request.ApplicationRequest;
 import co.com.crediya.model.application.StateApplication;
 import org.springframework.stereotype.Component;
 

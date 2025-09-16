@@ -2,9 +2,11 @@ package co.com.crediya.r2dbc;
 
 import co.com.crediya.model.application.Application;
 import co.com.crediya.model.application.StateApplication;
+import co.com.crediya.model.application.dto.ApplicationAprovedView;
 import co.com.crediya.model.application.dto.LoanApplicationView;
 import co.com.crediya.model.loantype.LoanType;
 import co.com.crediya.model.state.State;
+import co.com.crediya.r2dbc.entities.ApplicationAprovedViewEntity;
 import co.com.crediya.r2dbc.entities.ApplicationEntity;
 import co.com.crediya.r2dbc.entities.LoanApplicationViewEntity;
 import co.com.crediya.r2dbc.mapper.LoanApplicationEntityMapper;
@@ -40,7 +42,7 @@ class ApplicationReactiveRepositoryAdapterTest {
     private ApplicationReactiveRepositoryAdapter adapter;
 
     private final Application application = Application.builder()
-            .idApplication("APP-001")
+            .idApplication(1L)
             .amount(new BigDecimal("1000000"))
             .term(12)
             .identityDocument("123456789")
@@ -50,7 +52,7 @@ class ApplicationReactiveRepositoryAdapterTest {
             .build();
 
     private final ApplicationEntity entity = ApplicationEntity.builder()
-            .idApplication("APP-001")
+            .idApplication(1L)
             .amount(new BigDecimal("1000000"))
             .term(12)
             .identityDocument("123456789")
@@ -151,14 +153,12 @@ class ApplicationReactiveRepositoryAdapterTest {
 
     @Test
     void shouldReturnTrueWhenApplicationExists() {
-        // Arrange
-        String id = "APP-001";
+
+        Long id = 1L;
         when(repository.existsApplicationByIdApplication(id)).thenReturn(Mono.just(true));
 
-        // Act
         Mono<Boolean> result = adapter.existsApplication(id);
 
-        // Assert
         StepVerifier.create(result)
                 .expectNext(true)
                 .verifyComplete();
@@ -168,15 +168,13 @@ class ApplicationReactiveRepositoryAdapterTest {
 
     @Test
     void shouldReturnApplicationByIdSuccessfully() {
-        // Arrange
-        String id = "APP-001";
+
+        Long id = 1L;
         when(repository.findById(id)).thenReturn(Mono.just(entity));
         when(mapper.toDomain(entity)).thenReturn(application);
 
-        // Act
         Mono<Application> result = adapter.getApplication(id);
 
-        // Assert
         StepVerifier.create(result)
                 .expectNext(application)
                 .verifyComplete();
@@ -187,9 +185,9 @@ class ApplicationReactiveRepositoryAdapterTest {
 
     @Test
     void shouldUpdateApplicationStateSuccessfully() {
-        // Arrange
+
         StateApplication update = StateApplication.builder()
-                .idApplication("APP-001")
+                .idApplication(1L)
                 .idState(3)
                 .build();
 
@@ -202,22 +200,62 @@ class ApplicationReactiveRepositoryAdapterTest {
                 .state(State.builder().idState(3).build())
                 .build();
 
-        when(repository.findById("APP-001")).thenReturn(Mono.just(entity));
+        when(repository.findById(1L)).thenReturn(Mono.just(entity));
         when(repository.save(updatedEntity)).thenReturn(Mono.just(updatedEntity));
         when(mapper.toDomain(updatedEntity)).thenReturn(updatedDomain);
 
-        // Act
         Mono<Application> result = adapter.updateApplication(update);
 
-        // Assert
         StepVerifier.create(result)
                 .expectNext(updatedDomain)
                 .verifyComplete();
 
-        verify(repository).findById("APP-001");
+        verify(repository).findById(1L);
         verify(repository).save(updatedEntity);
         verify(mapper).toDomain(updatedEntity);
     }
 
+    @Test
+    void shouldReturnMappedApplicationsAproved() {
 
+        String document = "123456789";
+
+        ApplicationAprovedViewEntity entity1 = ApplicationAprovedViewEntity.builder()
+                .monto(new BigDecimal("1000000"))
+                .plazo(12)
+                .tasaInteres(new BigDecimal("0.045"))
+                .build();
+
+        ApplicationAprovedViewEntity entity2 = entity1.toBuilder()
+                .monto(new BigDecimal("2000000"))
+                .plazo(24)
+                .build();
+
+        ApplicationAprovedView view1 = ApplicationAprovedView.builder()
+                .amount(entity1.getMonto())
+                .term(entity1.getPlazo())
+                .interest(entity1.getTasaInteres())
+                .build();
+
+        ApplicationAprovedView view2 = ApplicationAprovedView.builder()
+                .amount(entity2.getMonto())
+                .term(entity2.getPlazo())
+                .interest(entity2.getTasaInteres())
+                .build();
+
+        when(repository.findApplicationsAproved(document)).thenReturn(Flux.just(entity1, entity2));
+        when(mapper.toViewAproved(entity1)).thenReturn(view1);
+        when(mapper.toViewAproved(entity2)).thenReturn(view2);
+
+        Flux<ApplicationAprovedView> result = adapter.getApplicationsAproved(document);
+
+        StepVerifier.create(result)
+                .expectNextCount(2)
+                .verifyComplete();
+
+
+        verify(repository).findApplicationsAproved(document);
+        verify(mapper).toViewAproved(entity1);
+        verify(mapper).toViewAproved(entity2);
+    }
 }

@@ -1,7 +1,8 @@
 package co.com.crediya.sqs.sender;
 
-import co.com.crediya.model.application.dto.UpdateApplicationView;
-import co.com.crediya.sqs.sender.config.SQSSenderProperties;
+import co.com.crediya.model.application.dto.NotificationData;
+import co.com.crediya.model.exception.SqsMessageException;
+import co.com.crediya.sqs.sender.config.SQSSenderNotificationsProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,13 +15,12 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 
-import java.math.BigDecimal;
 import java.util.concurrent.CompletableFuture;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class SQSSenderTest {
+class SQSSenderNotificationsTest {
 
     @Mock
     private SqsAsyncClient client;
@@ -28,22 +28,21 @@ class SQSSenderTest {
     @Mock
     private ObjectMapper objectMapper;
 
-    private SQSSender sender;
+    private SQSSenderNotifications sender;
 
-    private SQSSenderProperties properties;
+    private SQSSenderNotificationsProperties properties;
 
     @BeforeEach
     void setUp() {
-        properties = new SQSSenderProperties("us-east-1", "https://sqs.us-east-1.amazonaws.com/queue", null);
-        sender = new SQSSender(properties, client, objectMapper);
+        properties = new SQSSenderNotificationsProperties("us-east-1", "https://sqs.us-east-1.amazonaws.com/queue", null);
+        sender = new SQSSenderNotifications(properties, client, objectMapper);
     }
 
     @Test
-    void shouldSendMessageSuccessfully() {
+    void shouldSendMessageSuccessfully() throws JsonProcessingException {
 
-        UpdateApplicationView message = UpdateApplicationView.builder()
-                .idApplication("APP001")
-                .amount(BigDecimal.valueOf(1000000))
+        NotificationData message = NotificationData.builder()
+                .idApplication(1L)
                 .identityDocument("123456789")
                 .fullName("Rubén Tester")
                 .email("ruben@example.com")
@@ -56,6 +55,7 @@ class SQSSenderTest {
                 .build();
 
         CompletableFuture<SendMessageResponse> future = CompletableFuture.completedFuture(response);
+        when(objectMapper.writeValueAsString(any())).thenReturn("{\"mocked\":\"json\"}");
         when(client.sendMessage(any(SendMessageRequest.class))).thenReturn(future);
 
         StepVerifier.create(sender.send(message))
@@ -66,9 +66,8 @@ class SQSSenderTest {
     @Test
     void shouldReturnErrorWhenSerializationFails() throws JsonProcessingException {
 
-        UpdateApplicationView message = UpdateApplicationView.builder()
-                .idApplication("APP001")
-                .amount(BigDecimal.valueOf(1000000))
+        NotificationData message = NotificationData.builder()
+                .idApplication(1L)
                 .identityDocument("123456789")
                 .fullName("Rubén Tester")
                 .email("ruben@example.com")
@@ -80,7 +79,7 @@ class SQSSenderTest {
 
         StepVerifier.create(sender.send(message))
                 .expectErrorMatches(error ->
-                        error instanceof RuntimeException &&
+                        error instanceof SqsMessageException &&
                                 error.getMessage().equals("Error serializing message")
                 )
                 .verify();

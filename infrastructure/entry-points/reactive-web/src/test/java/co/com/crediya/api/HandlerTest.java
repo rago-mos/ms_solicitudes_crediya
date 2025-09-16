@@ -1,13 +1,15 @@
 package co.com.crediya.api;
 
-import co.com.crediya.api.dto.LoanApplicationRequest;
-import co.com.crediya.api.dto.LoanApplicationResponse;
-import co.com.crediya.api.dto.ApplicationRequest;
+import co.com.crediya.api.dto.request.DebtCapacityRequest;
+import co.com.crediya.api.dto.request.LoanApplicationRequest;
+import co.com.crediya.api.dto.response.LoanApplicationResponse;
+import co.com.crediya.api.dto.request.ApplicationRequest;
 import co.com.crediya.api.mapper.LoanApplicationMapper;
 import co.com.crediya.api.mapper.UpdateApplicationMapper;
 import co.com.crediya.model.application.Application;
 import co.com.crediya.model.application.StateApplication;
 import co.com.crediya.security.provider.JwtProvider;
+import co.com.crediya.usecase.loanapplication.GetLoanApplicationUseCase;
 import co.com.crediya.usecase.loanapplication.ILoanApplicationUseCase;
 import co.com.crediya.usecase.loanapplication.IUpdateApplicationUseCase;
 import jakarta.validation.ConstraintViolation;
@@ -47,6 +49,9 @@ class HandlerTest {
     private IUpdateApplicationUseCase updateApplicationUseCase;
 
     @Mock
+    private GetLoanApplicationUseCase getLoanApplicationUseCase;
+
+    @Mock
     private LoanApplicationMapper loanApplicationMapper;
 
     @Mock
@@ -59,7 +64,7 @@ class HandlerTest {
 
     @BeforeEach
     void setUp() {
-        handler = new Handler(validator, loanApplicationUseCase, updateApplicationUseCase,
+        handler = new Handler(validator, loanApplicationUseCase, updateApplicationUseCase, getLoanApplicationUseCase,
                 loanApplicationMapper, updateApplicationMapper, jwtProvider);
     }
 
@@ -72,7 +77,7 @@ class HandlerTest {
                 BigDecimal.valueOf(1000), 12, subject, 1);
 
         Application model = Application.builder().identityDocument(subject).build();
-        Application created = model.toBuilder().idApplication("APP-001").build();
+        Application created = model.toBuilder().idApplication(1L).build();
         LoanApplicationResponse response = LoanApplicationResponse.builder().identityDocument(subject).build();
 
         ServerRequest request = MockServerRequest.builder()
@@ -146,9 +151,9 @@ class HandlerTest {
     void shouldHandlePutApplicationLoanSuccessfully() {
 
         String token = "Bearer abc123";
-        ApplicationRequest request = new ApplicationRequest("APP001", 3);
+        ApplicationRequest request = new ApplicationRequest(1L, 3);
         StateApplication model = StateApplication.builder()
-                .idApplication("APP001")
+                .idApplication(1L)
                 .idState(3)
                 .build();
 
@@ -214,9 +219,9 @@ class HandlerTest {
     void shouldUpdateApplicationWithoutValidationWhenStateIsNotThree() {
 
         String token = "Bearer abc123";
-        ApplicationRequest request = new ApplicationRequest("APP002", 2);
+        ApplicationRequest request = new ApplicationRequest(2L, 2);
         StateApplication model = StateApplication.builder()
-                .idApplication("APP002")
+                .idApplication(2L)
                 .idState(2)
                 .build();
 
@@ -242,4 +247,33 @@ class HandlerTest {
                 })
                 .verifyComplete();
     }
+
+    @Test
+    void shouldReturnOkWhenDebtCapacityRequestIsValid() {
+
+        String token = "Bearer abc123";
+        DebtCapacityRequest dto = new DebtCapacityRequest(1234L);
+        Application model = Application.builder().idApplication(1234L).build();
+
+        ServerRequest serverRequest = MockServerRequest.builder()
+                .method(HttpMethod.POST)
+                .uri(URI.create("/api/v1/calcular-capacidad"))
+                .header(HttpHeaders.AUTHORIZATION, token)
+                .body(Mono.just(dto));
+
+        when(validator.validate(dto)).thenReturn(Set.of());
+        when(loanApplicationMapper.toModel(dto)).thenReturn(model);
+        when(loanApplicationUseCase.calculateCapacityApplication(model, "abc123"))
+                .thenReturn(Mono.just("exito"));
+
+        Mono<ServerResponse> responseMono = handler.listenPostDebtCapacity(serverRequest);
+
+        StepVerifier.create(responseMono)
+                .expectNextMatches(response -> {
+                    assertEquals(HttpStatus.OK, response.statusCode());
+                    return true;
+                })
+                .verifyComplete();
+    }
+
 }

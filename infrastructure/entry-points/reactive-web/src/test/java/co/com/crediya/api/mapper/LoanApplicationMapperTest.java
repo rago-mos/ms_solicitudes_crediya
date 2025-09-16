@@ -1,9 +1,10 @@
 package co.com.crediya.api.mapper;
 
-import co.com.crediya.api.dto.LoanApplicationRequest;
-import co.com.crediya.api.dto.LoanApplicationResponse;
-import co.com.crediya.api.dto.LoanTypeResponse;
-import co.com.crediya.api.dto.StateResponse;
+import co.com.crediya.api.dto.request.DebtCapacityRequest;
+import co.com.crediya.api.dto.request.LoanApplicationRequest;
+import co.com.crediya.api.dto.response.LoanApplicationResponse;
+import co.com.crediya.api.dto.response.LoanTypeResponse;
+import co.com.crediya.api.dto.response.StateResponse;
 import co.com.crediya.model.application.Application;
 import co.com.crediya.model.loantype.LoanType;
 import co.com.crediya.model.state.State;
@@ -78,5 +79,16 @@ class LoanApplicationMapperTest {
         assertEquals(new BigDecimal("2000000"), loanType.getMaximumAmount());
         assertEquals(new BigDecimal("0.03"), loanType.getInterestRate());
         assertTrue(loanType.getAutomaticValidation());
+    }
+
+    @Test
+    void shouldMapDebtCapacityRequestToApplication() {
+
+        DebtCapacityRequest dto = new DebtCapacityRequest(1234L);
+
+        Application result = mapper.toModel(dto);
+
+        assertNotNull(result);
+        assertEquals(1234L, result.getIdApplication());
     }
 }

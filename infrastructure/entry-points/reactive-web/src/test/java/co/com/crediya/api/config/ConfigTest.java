@@ -5,6 +5,7 @@ import co.com.crediya.api.RouterRest;
 import co.com.crediya.api.mapper.LoanApplicationMapper;
 import co.com.crediya.api.mapper.UpdateApplicationMapper;
 import co.com.crediya.security.provider.JwtProvider;
+import co.com.crediya.usecase.loanapplication.IGetLoanApplicationUseCase;
 import co.com.crediya.usecase.loanapplication.ILoanApplicationUseCase;
 import co.com.crediya.usecase.loanapplication.IUpdateApplicationUseCase;
 import jakarta.validation.Validator;
@@ -57,6 +58,11 @@ class MockUseCaseConfig {
     @Bean
     public IUpdateApplicationUseCase  iUpdateApplicationUseCase() {
         return Mockito.mock(IUpdateApplicationUseCase.class);
+    }
+
+    @Bean
+    public IGetLoanApplicationUseCase  iGetLoanApplicationUseCase() {
+        return Mockito.mock(IGetLoanApplicationUseCase.class);
     }
 
     @Bean

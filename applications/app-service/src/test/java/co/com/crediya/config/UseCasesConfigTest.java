@@ -1,6 +1,7 @@
 package co.com.crediya.config;
 
-import co.com.crediya.model.application.gateways.SqsMessageRepository;
+import co.com.crediya.model.application.gateways.SqsCapacityGateway;
+import co.com.crediya.model.application.gateways.SqsNotificationsGateway;
 import co.com.crediya.model.application.gateways.UserClientRepository;
 import co.com.crediya.r2dbc.ApplicationReactiveRepository;
 import co.com.crediya.r2dbc.LoanTypeReactiveRepository;
@@ -49,8 +50,13 @@ public class UseCasesConfigTest {
         }
 
         @Bean
-        public SqsMessageRepository  sqsMessageRepository() {
-            return Mockito.mock(SqsMessageRepository.class);
+        public SqsNotificationsGateway sqsMessageRepository() {
+            return Mockito.mock(SqsNotificationsGateway.class);
+        }
+
+        @Bean
+        public SqsCapacityGateway sqsCapacityGateway() {
+            return Mockito.mock(SqsCapacityGateway.class);
         }
 
         @Bean

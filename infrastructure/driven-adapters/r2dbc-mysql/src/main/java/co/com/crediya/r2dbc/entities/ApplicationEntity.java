@@ -18,7 +18,7 @@ public class ApplicationEntity {
 
     @Id
     @Column("id_solicitud")
-    private String idApplication;
+    private Long idApplication;
 
     @Column("monto")
     private BigDecimal amount;

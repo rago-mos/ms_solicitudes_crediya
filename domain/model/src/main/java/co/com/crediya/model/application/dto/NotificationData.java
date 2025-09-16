@@ -1,22 +1,23 @@
 package co.com.crediya.model.application.dto;
 
 import lombok.*;
-
-import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class UpdateApplicationView {
+public class NotificationData {
 
-    private String idApplication;
-    private BigDecimal amount;
+    private Long idApplication;
     private String identityDocument;
     private String fullName;
     private String email;
+    private Integer idStatus;
     private String statusName;
     private String loanTypeName;
+    List<PaymentPlan> paymentPlans;
+    private Boolean isValidatedAutomatic;
 
 }

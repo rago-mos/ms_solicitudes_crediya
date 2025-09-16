@@ -1,6 +1,6 @@
 package co.com.crediya.api.validator;
 
-import co.com.crediya.api.dto.LoanApplicationRequest;
+import co.com.crediya.api.dto.request.LoanApplicationRequest;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;

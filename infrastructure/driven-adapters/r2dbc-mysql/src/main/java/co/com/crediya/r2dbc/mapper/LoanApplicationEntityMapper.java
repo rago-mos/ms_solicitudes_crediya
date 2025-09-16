@@ -1,12 +1,16 @@
 package co.com.crediya.r2dbc.mapper;
 
 import co.com.crediya.model.application.Application;
+import co.com.crediya.model.application.dto.ApplicationAprovedView;
 import co.com.crediya.model.application.dto.LoanApplicationView;
 import co.com.crediya.model.loantype.LoanType;
 import co.com.crediya.model.state.State;
+import co.com.crediya.r2dbc.entities.ApplicationAprovedViewEntity;
 import co.com.crediya.r2dbc.entities.ApplicationEntity;
 import co.com.crediya.r2dbc.entities.LoanApplicationViewEntity;
 import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 @Component
 public class LoanApplicationEntityMapper {
@@ -19,6 +23,7 @@ public class LoanApplicationEntityMapper {
                 .identityDocument(application.getIdentityDocument())
                 .idState(application.getState().getIdState())
                 .idLoanType(application.getLoanType().getIdLoanType())
+                .date(application.getDate())
                 .build();
     }
 
@@ -30,6 +35,7 @@ public class LoanApplicationEntityMapper {
                 .identityDocument(entity.getIdentityDocument())
                 .state(buildState(entity.getIdState()))
                 .loanType(buildLoanType(entity.getIdLoanType()))
+                .date(entity.getDate())
                 .build();
     }
 
@@ -43,6 +49,14 @@ public class LoanApplicationEntityMapper {
                 .interestRate(entity.getInterestRate())
                 .loanTypeName(entity.getLoanTypeName())
                 .baseSalary(entity.getBaseSalary())
+                .build();
+    }
+
+    public ApplicationAprovedView toViewAproved(ApplicationAprovedViewEntity entity) {
+        return ApplicationAprovedView.builder()
+                .amount(entity.getMonto())
+                .term(entity.getPlazo())
+                .interest(entity.getTasaInteres())
                 .build();
     }
 

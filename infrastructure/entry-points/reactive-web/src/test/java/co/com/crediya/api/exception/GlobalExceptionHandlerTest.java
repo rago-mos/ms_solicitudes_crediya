@@ -1,9 +1,6 @@
 package co.com.crediya.api.exception;
 
-import co.com.crediya.model.exception.AuthenticationServiceUnavailableException;
-import co.com.crediya.model.exception.BusinessException;
-import co.com.crediya.model.exception.InvalidRequestException;
-import co.com.crediya.model.exception.NotFoundException;
+import co.com.crediya.model.exception.*;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -88,6 +85,16 @@ class GlobalExceptionHandlerTest {
         Mono<Void> result = handler.handle(exchange, ex);
 
         verify(response).setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+        verify(response).writeWith(any());
+    }
+
+    @Test
+    void shouldHandleSqsMessageException() {
+        SqsMessageException ex = new SqsMessageException("Unprocessable Entity");
+
+        Mono<Void> result = handler.handle(exchange, ex);
+
+        verify(response).setStatusCode(HttpStatus.UNPROCESSABLE_ENTITY);
         verify(response).writeWith(any());
     }
 

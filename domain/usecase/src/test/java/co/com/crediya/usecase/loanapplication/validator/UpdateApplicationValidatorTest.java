@@ -2,6 +2,7 @@ package co.com.crediya.usecase.loanapplication.validator;
 
 import co.com.crediya.model.application.Application;
 import co.com.crediya.model.application.StateApplication;
+import co.com.crediya.model.application.dto.NotificationData;
 import co.com.crediya.model.application.gateways.ApplicationRepository;
 import co.com.crediya.model.exception.BusinessException;
 import co.com.crediya.model.exception.NotFoundException;
@@ -35,34 +36,34 @@ class UpdateApplicationValidatorTest {
     }
 
     private final StateApplication validRequest = StateApplication.builder()
-            .idApplication("APP001")
+            .idApplication(1L)
             .idState(2)
             .build();
 
     @Test
     void shouldValidateSuccessfullyWhenAllConditionsAreMet() {
         Application application = Application.builder()
-                .idApplication("APP001")
+                .idApplication(1L)
                 .state(State.builder().idState(3).build())
                 .build();
 
         when(stateRepository.existsState(2)).thenReturn(Mono.just(true));
-        when(applicationRepository.existsApplication("APP001")).thenReturn(Mono.just(true));
-        when(applicationRepository.getApplication("APP001")).thenReturn(Mono.just(application));
+        when(applicationRepository.existsApplication(1L)).thenReturn(Mono.just(true));
+        when(applicationRepository.getApplication(1L)).thenReturn(Mono.just(application));
 
         StepVerifier.create(validator.validate(validRequest))
                 .verifyComplete();
 
         verify(stateRepository).existsState(2);
-        verify(applicationRepository).existsApplication("APP001");
-        verify(applicationRepository).getApplication("APP001");
+        verify(applicationRepository).existsApplication(1L);
+        verify(applicationRepository).getApplication(1L);
     }
 
     @Test
     void shouldFailWhenStateDoesNotExist() {
         when(stateRepository.existsState(2)).thenReturn(Mono.just(false));
-        when(applicationRepository.existsApplication(anyString())).thenReturn(Mono.just(true));
-        when(applicationRepository.getApplication(anyString())).thenReturn(Mono.just(Application.builder().build()));
+        when(applicationRepository.existsApplication(anyLong())).thenReturn(Mono.just(true));
+        when(applicationRepository.getApplication(anyLong())).thenReturn(Mono.just(Application.builder().build()));
 
         StepVerifier.create(validator.validate(validRequest))
                 .expectErrorMatches(error ->
@@ -78,8 +79,8 @@ class UpdateApplicationValidatorTest {
     @Test
     void shouldFailWhenApplicationDoesNotExist() {
         when(stateRepository.existsState(2)).thenReturn(Mono.just(true));
-        when(applicationRepository.existsApplication("APP001")).thenReturn(Mono.just(false));
-        when(applicationRepository.getApplication(anyString())).thenReturn(Mono.just(Application.builder().build()));
+        when(applicationRepository.existsApplication(1L)).thenReturn(Mono.just(false));
+        when(applicationRepository.getApplication(anyLong())).thenReturn(Mono.just(Application.builder().build()));
 
         StepVerifier.create(validator.validate(validRequest))
                 .expectErrorMatches(error ->
@@ -88,20 +89,21 @@ class UpdateApplicationValidatorTest {
                 )
                 .verify();
 
-        verify(applicationRepository).existsApplication("APP001");
+        verify(applicationRepository).existsApplication(1L);
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {2, 4}) // APROBADA o RECHAZADA
+    @ValueSource(ints = {2, 4})
+        // APROBADA o RECHAZADA
     void shouldFailWhenApplicationIsAlreadyApprovedOrRejected(int currentState) {
         Application application = Application.builder()
-                .idApplication("APP001")
+                .idApplication(1L)
                 .state(State.builder().idState(currentState).build())
                 .build();
 
         when(stateRepository.existsState(2)).thenReturn(Mono.just(true));
-        when(applicationRepository.existsApplication("APP001")).thenReturn(Mono.just(true));
-        when(applicationRepository.getApplication("APP001")).thenReturn(Mono.just(application));
+        when(applicationRepository.existsApplication(1L)).thenReturn(Mono.just(true));
+        when(applicationRepository.getApplication(1L)).thenReturn(Mono.just(application));
 
         StepVerifier.create(validator.validate(validRequest))
                 .expectErrorMatches(error ->
@@ -116,13 +118,13 @@ class UpdateApplicationValidatorTest {
         StateApplication invalidRequest = validRequest.toBuilder().idState(1).build();
 
         Application application = Application.builder()
-                .idApplication("APP001")
+                .idApplication(1L)
                 .state(State.builder().idState(3).build())
                 .build();
 
         when(stateRepository.existsState(1)).thenReturn(Mono.just(true));
-        when(applicationRepository.existsApplication("APP001")).thenReturn(Mono.just(true));
-        when(applicationRepository.getApplication("APP001")).thenReturn(Mono.just(application));
+        when(applicationRepository.existsApplication(1L)).thenReturn(Mono.just(true));
+        when(applicationRepository.getApplication(1L)).thenReturn(Mono.just(application));
 
         StepVerifier.create(validator.validate(invalidRequest))
                 .expectErrorMatches(error ->
@@ -131,4 +133,64 @@ class UpdateApplicationValidatorTest {
                 )
                 .verify();
     }
+
+    @Test
+    void shouldPassValidationWhenStateAndApplicationExist() {
+        NotificationData data = NotificationData.builder()
+                .idStatus(3)
+                .idApplication(1234L)
+                .build();
+
+        when(stateRepository.existsState(3)).thenReturn(Mono.just(true));
+        when(applicationRepository.existsApplication(1234L)).thenReturn(Mono.just(true));
+
+        StepVerifier.create(validator.validate(data))
+                .verifyComplete();
+
+        verify(stateRepository).existsState(3);
+        verify(applicationRepository).existsApplication(1234L);
+    }
+
+    @Test
+    void shouldFailValidationWhenStateDoesNotExist() {
+        NotificationData data = NotificationData.builder()
+                .idStatus(99)
+                .idApplication(1234L)
+                .build();
+
+        when(stateRepository.existsState(99)).thenReturn(Mono.just(false));
+        when(applicationRepository.existsApplication(anyLong())).thenReturn(Mono.just(true));
+
+        StepVerifier.create(validator.validate(data))
+                .expectErrorMatches(error ->
+                        error instanceof NotFoundException &&
+                                error.getMessage().equals("State not found")
+                )
+                .verify();
+
+        verify(stateRepository).existsState(99);
+        verify(applicationRepository).existsApplication(1234L);
+    }
+
+    @Test
+    void shouldFailValidationWhenApplicationDoesNotExist() {
+        NotificationData data = NotificationData.builder()
+                .idStatus(3)
+                .idApplication(9999L)
+                .build();
+
+        when(stateRepository.existsState(3)).thenReturn(Mono.just(true));
+        when(applicationRepository.existsApplication(9999L)).thenReturn(Mono.just(false));
+
+        StepVerifier.create(validator.validate(data))
+                .expectErrorMatches(error ->
+                        error instanceof NotFoundException &&
+                                error.getMessage().equals("Application not found")
+                )
+                .verify();
+
+        verify(stateRepository).existsState(3);
+        verify(applicationRepository).existsApplication(9999L);
+    }
+
 }
