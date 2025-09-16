@@ -1,9 +1,11 @@
 package co.com.crediya.r2dbc.mapper;
 
 import co.com.crediya.model.application.Application;
+import co.com.crediya.model.application.dto.ApplicationAprovedView;
 import co.com.crediya.model.application.dto.LoanApplicationView;
 import co.com.crediya.model.loantype.LoanType;
 import co.com.crediya.model.state.State;
+import co.com.crediya.r2dbc.entities.ApplicationAprovedViewEntity;
 import co.com.crediya.r2dbc.entities.ApplicationEntity;
 import co.com.crediya.r2dbc.entities.LoanApplicationViewEntity;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,7 +29,7 @@ class LoanApplicationEntityMapperTest {
     @Test
     void shouldMapApplicationToEntityCorrectly() {
         Application application = Application.builder()
-                .idApplication("APP-001")
+                .idApplication(1L)
                 .amount(new BigDecimal("500000"))
                 .term(12)
                 .identityDocument("123456789")
@@ -38,19 +40,20 @@ class LoanApplicationEntityMapperTest {
 
         ApplicationEntity entity = mapper.toEntity(application);
 
-        assertEquals("APP-001", entity.getIdApplication());
+        assertEquals(1L, entity.getIdApplication());
         assertEquals(new BigDecimal("500000"), entity.getAmount());
         assertEquals(12, entity.getTerm());
         assertEquals("123456789", entity.getIdentityDocument());
         assertEquals(1, entity.getIdState());
         assertEquals(2, entity.getIdLoanType());
-        assertNull(entity.getDate()); // porque no se mapea en toEntity
+        assertEquals(LocalDate.of(2025, 8, 31), entity.getDate());
+
     }
 
     @Test
     void shouldMapEntityToApplicationCorrectly() {
         ApplicationEntity entity = ApplicationEntity.builder()
-                .idApplication("APP-001")
+                .idApplication(1L)
                 .amount(new BigDecimal("500000"))
                 .term(12)
                 .identityDocument("123456789")
@@ -61,19 +64,20 @@ class LoanApplicationEntityMapperTest {
 
         Application application = mapper.toDomain(entity);
 
-        assertEquals("APP-001", application.getIdApplication());
+        assertEquals(1L, application.getIdApplication());
         assertEquals(new BigDecimal("500000"), application.getAmount());
         assertEquals(12, application.getTerm());
         assertEquals("123456789", application.getIdentityDocument());
         assertEquals(1, application.getState().getIdState());
         assertEquals(2, application.getLoanType().getIdLoanType());
-        assertNull(application.getDate()); // porque no se mapea en toDomain
+        assertEquals(LocalDate.of(2025, 8, 31), entity.getDate());
+
     }
 
     @Test
     void shouldReturnNullStateAndLoanTypeWhenIdsAreNull() {
         ApplicationEntity entity = ApplicationEntity.builder()
-                .idApplication("APP-002")
+                .idApplication(2L)
                 .amount(new BigDecimal("100000"))
                 .term(6)
                 .identityDocument("987654321")
@@ -89,7 +93,7 @@ class LoanApplicationEntityMapperTest {
 
     @Test
     void shouldMapEntityToViewCorrectly() {
-        // Arrange
+
         LoanApplicationViewEntity entity = LoanApplicationViewEntity.builder()
                 .amount(new BigDecimal("1000000"))
                 .monthTerm(12)
@@ -99,8 +103,8 @@ class LoanApplicationEntityMapperTest {
                 .interestRate(new BigDecimal("0.05"))
                 .loanTypeName("Personal")
                 .baseSalary(new BigDecimal("3000000"))
-                .fullName("Rubén Tester") // no se mapea
-                .email("ruben@example.com") // no se mapea
+                .fullName("Rubén Tester")
+                .email("ruben@example.com")
                 .build();
 
         LoanApplicationView result = mapper.toView(entity);
@@ -116,5 +120,23 @@ class LoanApplicationEntityMapperTest {
 
         assertThat(result.getFullName()).isNull();
         assertThat(result.getEmail()).isNull();
+    }
+
+    @Test
+    void shouldMapEntityToViewAprovedCorrectly() {
+
+        ApplicationAprovedViewEntity entity = ApplicationAprovedViewEntity.builder()
+                .monto(new BigDecimal("1500000"))
+                .plazo(24)
+                .tasaInteres(new BigDecimal("0.045"))
+                .build();
+
+        ApplicationAprovedView view = mapper.toViewAproved(entity);
+
+        assertNotNull(view);
+        assertEquals(new BigDecimal("1500000"), view.getAmount());
+        assertEquals(24, view.getTerm());
+        assertEquals(new BigDecimal("0.045"), view.getInterest());
+        assertNull(view.getLoanTypeName()); // No se mapea en este método
     }
 }

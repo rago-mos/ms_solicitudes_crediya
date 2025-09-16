@@ -1,6 +1,7 @@
 package co.com.crediya.usecase.loanapplication.validator;
 
 import co.com.crediya.model.application.Application;
+import co.com.crediya.model.application.gateways.ApplicationRepository;
 import co.com.crediya.model.application.gateways.UserClientRepository;
 import co.com.crediya.model.loantype.LoanType;
 import co.com.crediya.model.loantype.gateways.LoanTypeRepository;
@@ -23,6 +24,7 @@ class LoanApplicationValidatorTest {
     private LoanTypeRepository loanTypeRepository;
     private StateRepository stateRepository;
     private UserClientRepository userClientRepository;
+    private ApplicationRepository applicationRepository;
 
     private LoanApplicationValidator validator;
 
@@ -33,11 +35,13 @@ class LoanApplicationValidatorTest {
         loanTypeRepository = mock(LoanTypeRepository.class);
         stateRepository = mock(StateRepository.class);
         userClientRepository = mock(UserClientRepository.class);
+        applicationRepository = mock(ApplicationRepository.class);
 
-        validator = new LoanApplicationValidator(loanTypeRepository, stateRepository, userClientRepository);
+        validator = new LoanApplicationValidator(loanTypeRepository, stateRepository, 
+                userClientRepository, applicationRepository);
 
         baseApplication = Application.builder()
-                .idApplication("APP-001")
+                .idApplication(1L)
                 .amount(new BigDecimal("1000000"))
                 .term(12)
                 .identityDocument("123456789")
@@ -135,5 +139,67 @@ class LoanApplicationValidatorTest {
                 .expectErrorMatches(e -> e instanceof BusinessException &&
                         e.getMessage().contains("The amount is not valid"))
                 .verify();
+    }
+
+    @Test
+    void shouldPassValidationWhenApplicationExistsAndStateIsPending() {
+        Application application = Application.builder()
+                .idApplication(1L)
+                .state(State.builder().idState(1).build())
+                .build();
+
+        when(applicationRepository.existsApplication(1L)).thenReturn(Mono.just(true));
+        when(applicationRepository.getApplication(1L)).thenReturn(Mono.just(application));
+
+        StepVerifier.create(validator.validateCalculate(application))
+                .verifyComplete();
+
+        verify(applicationRepository).existsApplication(1L);
+        verify(applicationRepository).getApplication(1L);
+    }
+
+    @Test
+    void shouldFailValidationWhenApplicationDoesNotExist() {
+        Application input = Application.builder()
+                .idApplication(999L)
+                .build();
+
+        when(applicationRepository.existsApplication(999L)).thenReturn(Mono.just(false));
+        when(applicationRepository.getApplication(anyLong())).thenReturn(Mono.empty());
+
+        StepVerifier.create(validator.validateCalculate(input))
+                .expectErrorMatches(error ->
+                        error instanceof NotFoundException &&
+                                error.getMessage().equals("Application not found")
+                )
+                .verify();
+
+        verify(applicationRepository).existsApplication(999L);
+        verify(applicationRepository, never()).getApplication(1L);
+    }
+
+    @Test
+    void shouldFailValidationWhenStateIsAlreadyProcessed() {
+        Application input = Application.builder()
+                .idApplication(1L)
+                .build();
+
+        Application stored = Application.builder()
+                .idApplication(1L)
+                .state(State.builder().idState(2).build())
+                .build();
+
+        when(applicationRepository.existsApplication(1L)).thenReturn(Mono.just(true));
+        when(applicationRepository.getApplication(1L)).thenReturn(Mono.just(stored));
+
+        StepVerifier.create(validator.validateCalculate(input))
+                .expectErrorMatches(error ->
+                        error instanceof BusinessException &&
+                                error.getMessage().equals("This request has already been processed")
+                )
+                .verify();
+
+        verify(applicationRepository).existsApplication(1L);
+        verify(applicationRepository).getApplication(1L);
     }
 }

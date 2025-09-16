@@ -1,7 +1,12 @@
 package co.com.crediya.api;
 
 
-import co.com.crediya.api.dto.*;
+import co.com.crediya.api.dto.request.ApplicationRequest;
+import co.com.crediya.api.dto.request.DebtCapacityRequest;
+import co.com.crediya.api.dto.request.LoanApplicationRequest;
+import co.com.crediya.api.dto.response.LoanApplicationResponse;
+import co.com.crediya.api.dto.response.LoanTypeResponse;
+import co.com.crediya.api.dto.response.StateResponse;
 import co.com.crediya.api.exception.GlobalExceptionHandler;
 import co.com.crediya.api.mapper.LoanApplicationMapper;
 import co.com.crediya.api.mapper.UpdateApplicationMapper;
@@ -12,6 +17,7 @@ import co.com.crediya.model.application.dto.PageApplicationResponse;
 import co.com.crediya.model.loantype.LoanType;
 import co.com.crediya.model.state.State;
 import co.com.crediya.security.provider.JwtProvider;
+import co.com.crediya.usecase.loanapplication.IGetLoanApplicationUseCase;
 import co.com.crediya.usecase.loanapplication.ILoanApplicationUseCase;
 import co.com.crediya.usecase.loanapplication.IUpdateApplicationUseCase;
 import jakarta.validation.Validator;
@@ -47,6 +53,9 @@ class RouterRestTest {
 
     @MockitoBean
     private IUpdateApplicationUseCase updateApplicationUseCase;
+
+    @MockitoBean
+    private IGetLoanApplicationUseCase getLoanApplicationUseCase;
 
     @MockitoBean
     private LoanApplicationMapper loanApplicationMapper;
@@ -148,7 +157,7 @@ class RouterRestTest {
         );
 
         when(jwtProvider.getSubject(anyString())).thenReturn("123456789");
-        when(loanApplicationUseCase.getLoanApplication(anyList(), anyInt(), anyInt(), anyString()))
+        when(getLoanApplicationUseCase.getLoanApplication(anyList(), anyInt(), anyInt(), anyString()))
                 .thenReturn(Mono.just(pageResponse));
 
         client.get()
@@ -178,9 +187,9 @@ class RouterRestTest {
     void shouldUpdateApplicationSuccessfully() {
 
         String token = "Bearer jkdsajs";
-        ApplicationRequest request = new ApplicationRequest("APP123", 3);
+        ApplicationRequest request = new ApplicationRequest(123L, 3);
         StateApplication model = StateApplication.builder()
-                .idApplication("APP123")
+                .idApplication(123L)
                 .idState(3)
                 .build();
 
@@ -201,6 +210,35 @@ class RouterRestTest {
                 .exchange()
                 .expectStatus().isForbidden();
     }
+
+    @WithMockUser(username = "admin", authorities = {"ASESOR"})
+    @Test
+    void shouldCalculateDebtCapacitySuccessfully() {
+
+        String token = "Bearer jkdsajs";
+
+        DebtCapacityRequest request = new DebtCapacityRequest(1234L);
+
+        Application application = Application.builder()
+                .idApplication(1234L)
+                .build();
+
+        when(jwtProvider.getSubject(anyString())).thenReturn("123456789");
+        when(validator.validate(any())).thenReturn(Set.of());
+        when(loanApplicationMapper.toModel(request)).thenReturn(application);
+        when(loanApplicationUseCase.calculateCapacityApplication(eq(application), anyString()))
+                .thenReturn(Mono.just("exito"));
+
+        client.post()
+                .uri("/api/v1/calcular-capacidad")
+                .header(HttpHeaders.AUTHORIZATION, token)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .bodyValue(request)
+                .exchange()
+                .expectStatus().isForbidden();
+    }
+
 }
 
 @TestConfiguration

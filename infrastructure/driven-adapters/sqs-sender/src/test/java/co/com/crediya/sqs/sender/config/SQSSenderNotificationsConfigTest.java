@@ -11,12 +11,12 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 
-class SQSSenderConfigTest {
+class SQSSenderNotificationsConfigTest {
 
     @Test
     void shouldCreateSqsAsyncClientBeanSuccessfully() {
 
-        SQSSenderProperties properties = new SQSSenderProperties(
+        SQSSenderNotificationsProperties properties = new SQSSenderNotificationsProperties(
                 "us-east-1",
                 "https://sqs.us-east-1.amazonaws.com/123456789012/my-queue",
                 "https://sqs.us-east-1.amazonaws.com"
@@ -39,7 +39,7 @@ class SQSSenderConfigTest {
     @Test
     void shouldCreateSqsAsyncClientWithoutEndpointWhenNotProvided() {
 
-        SQSSenderProperties properties = new SQSSenderProperties(
+        SQSSenderNotificationsProperties properties = new SQSSenderNotificationsProperties(
                 "us-east-1",
                 "https://sqs.us-east-1.amazonaws.com/123456789012/my-queue",
                 null

@@ -1,9 +1,10 @@
 package co.com.crediya.usecase.loanapplication;
 
 import co.com.crediya.model.application.Application;
-import co.com.crediya.model.application.dto.LoanApplicationView;
-import co.com.crediya.model.application.dto.PageApplicationResponse;
+import co.com.crediya.model.application.dto.ApplicationAprovedView;
+import co.com.crediya.model.application.dto.ApplicationValidationData;
 import co.com.crediya.model.application.gateways.ApplicationRepository;
+import co.com.crediya.model.application.gateways.SqsCapacityGateway;
 import co.com.crediya.model.application.gateways.UserClientRepository;
 import co.com.crediya.model.loantype.LoanType;
 import co.com.crediya.model.loantype.gateways.LoanTypeRepository;
@@ -21,7 +22,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 class LoanApplicationUseCaseTest {
@@ -31,6 +31,7 @@ class LoanApplicationUseCaseTest {
     private LoanTypeRepository loanTypeRepository;
     private LoanApplicationValidator validator;
     private UserClientRepository userClientRepository;
+    private SqsCapacityGateway sqsCapacityGateway;
 
     private LoanApplicationUseCase useCase;
 
@@ -41,16 +42,17 @@ class LoanApplicationUseCaseTest {
         loanTypeRepository = mock(LoanTypeRepository.class);
         validator = mock(LoanApplicationValidator.class);
         userClientRepository = mock(UserClientRepository.class);
+        sqsCapacityGateway = mock(SqsCapacityGateway.class);
 
         useCase = new LoanApplicationUseCase(applicationRepository, stateRepository, loanTypeRepository, validator,
-                userClientRepository);
+                userClientRepository, sqsCapacityGateway);
     }
 
     @Test
     void shouldRegisterLoanApplicationSuccessfully() {
 
         Application application = Application.builder()
-                .idApplication("APP-001")
+                .idApplication(1L)
                 .amount(new BigDecimal("1000000"))
                 .term(12)
                 .identityDocument("123456789")
@@ -74,10 +76,28 @@ class LoanApplicationUseCaseTest {
                 .automaticValidation(true)
                 .build();
 
+        UserApplication user = UserApplication.builder()
+                .identityDocument("123456789")
+                .firstName("Rubén Tester")
+                .build();
+
+        ApplicationAprovedView previousView = ApplicationAprovedView.builder()
+                .amount(new BigDecimal("900000"))
+                .term(12)
+                .interest(new BigDecimal("0.03"))
+                .loanTypeName("Educativo")
+                .build();
+
         when(validator.validate(application, "shjdfhks")).thenReturn(Mono.empty());
         when(applicationRepository.registerApplication(application)).thenReturn(Mono.just(application));
         when(stateRepository.findState(1)).thenReturn(Mono.just(enrichedState));
         when(loanTypeRepository.findLoanType(2)).thenReturn(Mono.just(enrichedLoanType));
+        when(userClientRepository.getUsersByDocuments(anyList(), eq("shjdfhks")))
+                .thenReturn(Flux.just(user));
+        when(applicationRepository.getApplicationsAproved("123456789"))
+                .thenReturn(Flux.just(previousView));
+        when(sqsCapacityGateway.send(any(ApplicationValidationData.class)))
+                .thenReturn(Mono.just("msg-001"));
 
         Mono<Application> result = useCase.registerLoanApplication(application, "shjdfhks");
 
@@ -96,145 +116,56 @@ class LoanApplicationUseCaseTest {
     }
 
     @Test
-    void shouldReturnEnrichedPageApplicationResponse() {
+    void shouldCalculateCapacitySuccessfully() {
 
-        List<Integer> status = List.of(1, 2);
-        int page = 1;
-        int size = 10;
-        int offset = 0;
-        String token = "abc123";
+        String token = "Bearer abc123";
 
-        LoanApplicationView view1 = LoanApplicationView.builder()
+        Application application = Application.builder()
+                .idApplication(1L)
                 .identityDocument("123456789")
                 .amount(new BigDecimal("1000000"))
-                .monthTerm(12)
-                .monthAmountApprovedApplication(new BigDecimal("85000"))
-                .statusName("Approved")
-                .interestRate(new BigDecimal("0.05"))
-                .loanTypeName("Personal")
+                .term(12)
+                .state(State.builder().idState(1).build())
+                .loanType(LoanType.builder().idLoanType(2).build())
                 .build();
 
-        LoanApplicationView view2 = view1.toBuilder().identityDocument("987654321").build();
-
-        UserApplication user1 = UserApplication.builder()
-                .identityDocument("123456789")
-                .firstName("Rubén")
-                .lastName("Tester")
-                .email("ruben@example.com")
-                .baseSalary(new BigDecimal("3000000"))
+        Application enriched = application.toBuilder()
+                .state(State.builder().idState(1).name("Pendiente").build())
+                .loanType(LoanType.builder().idLoanType(2).name("Personal").interestRate(new BigDecimal("0.05")).build())
                 .build();
-
-        UserApplication user2 = UserApplication.builder()
-                .identityDocument("987654321")
-                .firstName("Ana")
-                .lastName("Dev")
-                .email("ana@example.com")
-                .baseSalary(new BigDecimal("2500000"))
-                .build();
-
-        when(applicationRepository.countByStatus(status)).thenReturn(Mono.just(2L));
-        when(applicationRepository.findLoanApplicationDetails(status, size, offset)).thenReturn(Flux.just(view1, view2));
-        when(userClientRepository.getUsersByDocuments(List.of("123456789", "987654321"), token))
-                .thenReturn(Flux.just(user1, user2));
-
-        Mono<PageApplicationResponse<LoanApplicationView>> result = useCase.getLoanApplication(status, page, size, token);
-
-        StepVerifier.create(result)
-                .assertNext(response -> {
-                    assertThat(response.getPage()).isEqualTo(page);
-                    assertThat(response.getSize()).isEqualTo(size);
-                    assertThat(response.getTotalElements()).isEqualTo(2L);
-                    assertThat(response.getTotalPages()).isEqualTo(1);
-                    assertThat(response.getContent()).hasSize(2);
-
-                    LoanApplicationView enriched1 = response.getContent().get(0);
-                    assertThat(enriched1.getIdentityDocument()).isEqualTo("123456789");
-                    assertThat(enriched1.getEmail()).isEqualTo("ruben@example.com");
-                    assertThat(enriched1.getBaseSalary()).isEqualByComparingTo("3000000");
-                    assertThat(enriched1.getFullName()).isEqualTo("Rubén Tester");
-
-                    LoanApplicationView enriched2 = response.getContent().get(1);
-                    assertThat(enriched2.getIdentityDocument()).isEqualTo("987654321");
-                    assertThat(enriched2.getEmail()).isEqualTo("ana@example.com");
-                    assertThat(enriched2.getBaseSalary()).isEqualByComparingTo("2500000");
-                    assertThat(enriched2.getFullName()).isEqualTo("Ana Dev");
-                })
-                .verifyComplete();
-
-        verify(applicationRepository).countByStatus(status);
-        verify(applicationRepository).findLoanApplicationDetails(status, size, offset);
-        verify(userClientRepository).getUsersByDocuments(List.of("123456789", "987654321"), token);
-    }
-
-    @Test
-    void shouldIgnoreDuplicateDocumentsAndEnrichOnce() {
-        List<Integer> status = List.of(1);
-        int page = 1;
-        int size = 10;
-        String token = "abc123";
-
-        LoanApplicationView view1 = LoanApplicationView.builder()
-                .identityDocument("123456789")
-                .amount(new BigDecimal("1000000"))
-                .monthTerm(12)
-                .build();
-
-        LoanApplicationView view2 = view1.toBuilder().identityDocument("123456789").build(); // mismo documento
 
         UserApplication user = UserApplication.builder()
                 .identityDocument("123456789")
-                .firstName("Rubén")
-                .lastName("Tester")
-                .email("ruben@example.com")
-                .baseSalary(new BigDecimal("3000000"))
+                .firstName("Rubén Tester")
                 .build();
 
-        when(applicationRepository.countByStatus(status)).thenReturn(Mono.just(2L));
-        when(applicationRepository.findLoanApplicationDetails(status, size, 0)).thenReturn(Flux.just(view1, view2));
+        ApplicationAprovedView previousView = ApplicationAprovedView.builder()
+                .amount(new BigDecimal("900000"))
+                .term(12)
+                .interest(new BigDecimal("0.045"))
+                .loanTypeName("Personal")
+                .build();
+
+        when(validator.validateCalculate(application)).thenReturn(Mono.empty());
+        when(applicationRepository.getApplication(1L)).thenReturn(Mono.just(application));
+        when(stateRepository.findState(1)).thenReturn(Mono.just(enriched.getState()));
+        when(loanTypeRepository.findLoanType(2)).thenReturn(Mono.just(enriched.getLoanType()));
         when(userClientRepository.getUsersByDocuments(List.of("123456789"), token)).thenReturn(Flux.just(user));
+        when(applicationRepository.getApplicationsAproved("123456789")).thenReturn(Flux.just(previousView));
+        when(sqsCapacityGateway.send(any(ApplicationValidationData.class))).thenReturn(Mono.just("msg-001"));
 
-        Mono<PageApplicationResponse<LoanApplicationView>> result = useCase.getLoanApplication(status, page, size, token);
+        Mono<String> result = useCase.calculateCapacityApplication(application, token);
 
         StepVerifier.create(result)
-                .assertNext(response -> {
-                    assertThat(response.getContent()).hasSize(2);
-                    response.getContent().forEach(app -> {
-                        assertThat(app.getEmail()).isEqualTo("ruben@example.com");
-                        assertThat(app.getFullName()).isEqualTo("Rubén Tester");
-                    });
-                })
+                .expectNext("The capacity calculation for the request is in progress")
                 .verifyComplete();
 
+        verify(validator).validateCalculate(application);
+        verify(applicationRepository).getApplication(1L);
+        verify(stateRepository).findState(1);
+        verify(loanTypeRepository).findLoanType(2);
         verify(userClientRepository).getUsersByDocuments(List.of("123456789"), token);
+        verify(applicationRepository).getApplicationsAproved("123456789");
+        verify(sqsCapacityGateway).send(any(ApplicationValidationData.class));
     }
-
-    @Test
-    void shouldReturnUnenrichedApplicationsWhenUsersNotFound() {
-        List<Integer> status = List.of(1);
-        int page = 1;
-        int size = 10;
-        String token = "abc123";
-
-        LoanApplicationView view = LoanApplicationView.builder()
-                .identityDocument("000000000")
-                .amount(new BigDecimal("500000"))
-                .monthTerm(6)
-                .build();
-
-        when(applicationRepository.countByStatus(status)).thenReturn(Mono.just(1L));
-        when(applicationRepository.findLoanApplicationDetails(status, size, 0)).thenReturn(Flux.just(view));
-        when(userClientRepository.getUsersByDocuments(List.of("000000000"), token)).thenReturn(Flux.empty());
-
-        Mono<PageApplicationResponse<LoanApplicationView>> result = useCase.getLoanApplication(status, page, size, token);
-
-        StepVerifier.create(result)
-                .assertNext(response -> {
-                    assertThat(response.getContent()).hasSize(1);
-                    assertThat(response.getContent().get(0).getEmail()).isNull();
-                    assertThat(response.getContent().get(0).getFullName()).isNull();
-                })
-                .verifyComplete();
-    }
-
-
 }
