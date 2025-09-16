@@ -1,6 +1,7 @@
-package co.com.crediya.api.dto;
+package co.com.crediya.model.application.dto;
 
 import lombok.*;
+
 import java.math.BigDecimal;
 
 @Getter
@@ -8,11 +9,10 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
-public class LoanApplicationResponse {
+public class ApplicationAprovedView {
 
     private BigDecimal amount;
     private Integer term;
-    private String identityDocument;
-    private StateResponse state;
-    private LoanTypeResponse loanType;
+    private BigDecimal interest;
+    private String loanTypeName;
 }

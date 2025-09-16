@@ -1,4 +1,4 @@
-package co.com.crediya.api.dto;
+package co.com.crediya.api.dto.response;
 
 import lombok.*;
 

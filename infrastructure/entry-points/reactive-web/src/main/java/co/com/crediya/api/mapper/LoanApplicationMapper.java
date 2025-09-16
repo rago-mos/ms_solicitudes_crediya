@@ -1,9 +1,10 @@
 package co.com.crediya.api.mapper;
 
-import co.com.crediya.api.dto.LoanApplicationRequest;
-import co.com.crediya.api.dto.LoanApplicationResponse;
-import co.com.crediya.api.dto.LoanTypeResponse;
-import co.com.crediya.api.dto.StateResponse;
+import co.com.crediya.api.dto.request.DebtCapacityRequest;
+import co.com.crediya.api.dto.request.LoanApplicationRequest;
+import co.com.crediya.api.dto.response.LoanApplicationResponse;
+import co.com.crediya.api.dto.response.LoanTypeResponse;
+import co.com.crediya.api.dto.response.StateResponse;
 import co.com.crediya.model.application.Application;
 import co.com.crediya.model.loantype.LoanType;
 import co.com.crediya.model.state.State;
@@ -20,6 +21,12 @@ public class LoanApplicationMapper {
                 .identityDocument(dto.identityDocument())
                 .state(buildState())
                 .loanType(buildLoanType(dto.idLoanType()))
+                .build();
+    }
+
+    public Application toModel(DebtCapacityRequest dto) {
+        return Application.builder()
+                .idApplication(dto.idApplication())
                 .build();
     }
 

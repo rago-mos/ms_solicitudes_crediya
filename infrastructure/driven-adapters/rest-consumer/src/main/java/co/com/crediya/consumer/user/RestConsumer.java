@@ -61,5 +61,4 @@ public class RestConsumer implements UserClientRepository {
     public Mono<Boolean> fallbackUserExistsByDocument(String documentIdentity, String token, Throwable throwable) {
         return fallbackHandler.fallbackMono("userExistsByDocument", throwable);
     }
-
 }

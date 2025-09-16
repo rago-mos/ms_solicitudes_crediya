@@ -9,6 +9,6 @@ import lombok.*;
 @Builder(toBuilder = true)
 public class StateApplication {
 
-    private String idApplication;
+    private Long idApplication;
     private Integer idState;
 }

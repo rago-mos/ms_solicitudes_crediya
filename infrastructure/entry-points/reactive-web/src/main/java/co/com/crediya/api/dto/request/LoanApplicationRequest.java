@@ -1,4 +1,4 @@
-package co.com.crediya.api.dto;
+package co.com.crediya.api.dto.request;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;

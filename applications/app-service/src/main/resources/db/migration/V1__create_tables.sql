@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS tipo_prestamo (
 
 -- Tabla de solicitud
 CREATE TABLE IF NOT EXISTS solicitud (
-    id_solicitud CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    id_solicitud BIGINT PRIMARY KEY AUTO_INCREMENT,
     monto DECIMAL(20, 2) NOT NULL,
     plazo INT NOT NULL,
     documento_identidad VARCHAR(20) NOT NULL,

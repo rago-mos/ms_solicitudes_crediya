@@ -1,5 +1,6 @@
 package co.com.crediya.config;
 
+import co.com.crediya.model.application.gateways.ApplicationRepository;
 import co.com.crediya.model.application.gateways.UserClientRepository;
 import co.com.crediya.model.loantype.gateways.LoanTypeRepository;
 import co.com.crediya.model.state.gateways.StateRepository;
@@ -13,7 +14,10 @@ public class LoanApplicationValidtorConfig {
     @Bean
     public LoanApplicationValidator loanApplicationValidator(LoanTypeRepository loanTypeRepository,
                                                              StateRepository stateRepository,
-                                                             UserClientRepository userClientRepository) {
-        return new LoanApplicationValidator(loanTypeRepository, stateRepository, userClientRepository);
+                                                             UserClientRepository userClientRepository,
+                                                             ApplicationRepository applicationRepository) {
+
+        return new LoanApplicationValidator(loanTypeRepository, stateRepository, userClientRepository,
+                applicationRepository);
     }
 }

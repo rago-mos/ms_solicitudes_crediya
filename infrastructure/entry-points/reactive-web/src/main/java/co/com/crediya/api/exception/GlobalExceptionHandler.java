@@ -1,10 +1,7 @@
 package co.com.crediya.api.exception;
 
-import co.com.crediya.api.dto.ErrorResponseHandler;
-import co.com.crediya.model.exception.AuthenticationServiceUnavailableException;
-import co.com.crediya.model.exception.BusinessException;
-import co.com.crediya.model.exception.InvalidRequestException;
-import co.com.crediya.model.exception.NotFoundException;
+import co.com.crediya.api.dto.response.ErrorResponseHandler;
+import co.com.crediya.model.exception.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -81,6 +78,7 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler, Ordered
         if (ex instanceof InvalidRequestException) return HttpStatus.BAD_REQUEST;
         if (ex instanceof NotFoundException) return HttpStatus.NOT_FOUND;
         if (ex instanceof AuthenticationServiceUnavailableException) return HttpStatus.SERVICE_UNAVAILABLE;
+        if (ex instanceof SqsMessageException) return HttpStatus.UNPROCESSABLE_ENTITY;
         return HttpStatus.INTERNAL_SERVER_ERROR;
     }
 

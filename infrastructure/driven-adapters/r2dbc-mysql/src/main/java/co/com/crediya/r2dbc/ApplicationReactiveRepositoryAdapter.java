@@ -2,11 +2,13 @@ package co.com.crediya.r2dbc;
 
 import co.com.crediya.model.application.Application;
 import co.com.crediya.model.application.StateApplication;
+import co.com.crediya.model.application.dto.ApplicationAprovedView;
 import co.com.crediya.model.application.dto.LoanApplicationView;
 import co.com.crediya.model.application.gateways.ApplicationRepository;
 import co.com.crediya.r2dbc.entities.ApplicationEntity;
 import co.com.crediya.r2dbc.helper.ReactiveAdapterOperations;
 import co.com.crediya.r2dbc.mapper.LoanApplicationEntityMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
@@ -14,11 +16,12 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
+@Slf4j
 @Repository
 public class ApplicationReactiveRepositoryAdapter extends ReactiveAdapterOperations<
         Application,
         ApplicationEntity,
-        String,
+        Long,
         ApplicationReactiveRepository
 > implements ApplicationRepository {
 
@@ -44,12 +47,18 @@ public class ApplicationReactiveRepositoryAdapter extends ReactiveAdapterOperati
     }
 
     @Override
+    public Flux<ApplicationAprovedView> getApplicationsAproved(String document) {
+        return repository.findApplicationsAproved(document)
+                .map(loanApplicationEntityMapper::toViewAproved);
+    }
+
+    @Override
     public Mono<Long> countByStatus(List<Integer> status) {
         return repository.countByStatusIn(status);
     }
 
     @Override
-    public Mono<Boolean> existsApplication(String id) {
+    public Mono<Boolean> existsApplication(Long id) {
         return repository.existsApplicationByIdApplication(id);
     }
 
@@ -64,7 +73,7 @@ public class ApplicationReactiveRepositoryAdapter extends ReactiveAdapterOperati
     }
 
     @Override
-    public Mono<Application> getApplication(String id) {
+    public Mono<Application> getApplication(Long id) {
         return repository.findById(id)
                 .map(loanApplicationEntityMapper::toDomain);
     }

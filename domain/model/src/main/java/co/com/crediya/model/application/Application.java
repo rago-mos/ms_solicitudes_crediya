@@ -18,7 +18,7 @@ import java.time.LocalDate;
 @Builder(toBuilder = true)
 public class Application {
 
-    private String idApplication;
+    private Long idApplication;
     private BigDecimal amount;
     private Integer term;
     private String identityDocument;

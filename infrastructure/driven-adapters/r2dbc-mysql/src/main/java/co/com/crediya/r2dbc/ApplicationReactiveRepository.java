@@ -1,6 +1,7 @@
 package co.com.crediya.r2dbc;
 
 import co.com.crediya.r2dbc.entities.ApplicationEntity;
+import co.com.crediya.r2dbc.entities.ApplicationAprovedViewEntity;
 import co.com.crediya.r2dbc.entities.LoanApplicationViewEntity;
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.query.ReactiveQueryByExampleExecutor;
@@ -10,7 +11,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
-public interface ApplicationReactiveRepository extends ReactiveCrudRepository<ApplicationEntity, String>, ReactiveQueryByExampleExecutor<ApplicationEntity> {
+public interface ApplicationReactiveRepository extends ReactiveCrudRepository<ApplicationEntity, Long>, ReactiveQueryByExampleExecutor<ApplicationEntity> {
 
 
     @Query("""
@@ -39,5 +40,16 @@ public interface ApplicationReactiveRepository extends ReactiveCrudRepository<Ap
             """)
     Mono<Long> countByStatusIn(List<Integer> status);
 
-    Mono<Boolean> existsApplicationByIdApplication(String id);
+    Mono<Boolean> existsApplicationByIdApplication(Long id);
+
+    @Query("""
+            SELECT s.monto, s.plazo, 
+                   tp.tasa_interes AS tasa_interes
+            FROM solicitud s
+            INNER JOIN tipo_prestamo tp ON tp.id_tipo_prestamo = s.fk_id_tipo_prestamo
+            WHERE s.documento_identidad = :document
+            AND s.fk_id_estado = 4
+            """)
+    Flux<ApplicationAprovedViewEntity> findApplicationsAproved(String document);
+
 }

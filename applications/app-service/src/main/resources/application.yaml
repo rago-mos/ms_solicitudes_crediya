@@ -47,9 +47,14 @@ adapter:
     timeout: 5000
     url: "${REST_CONSUMER_HOST:http://localhost:8001}"
   sqs:
-    region: ${AWS_REGION}
-    queueUrl: ${AWS_SQS_QUEUEURL}
-    endpoint: ${AWS_SQS_ENDPOINT}
+    notifications:
+      region: "${AWS_REGION}"
+      queueUrl: "${AWS_SQS_QUEUEURL_NOTIFICATIONS}"
+      endpoint: "${AWS_SQS_ENDPOINT}"
+    capacity:
+      region: "${AWS_REGION}"
+      queueUrl: "${AWS_SQS_QUEUEURL_CAPACITY}"
+      endpoint: "${AWS_SQS_ENDPOINT}"
 resilience4j:
   circuitbreaker:
     instances:
@@ -73,3 +78,12 @@ resilience4j:
         waitDurationInOpenState: "10s"
 jwt:
   secret: "${JWT_SECRET}"
+entrypoint:
+  sqs:
+    region: "${AWS_REGION}"
+    endpoint: "${AWS_SQS_ENDPOINT}"
+    queueUrl: "${AWS_SQS_QUEUEURL_STATE}"
+    waitTimeSeconds: 20
+    maxNumberOfMessages: 10
+    visibilityTimeoutSeconds: 30
+    numberOfThreads: 1
