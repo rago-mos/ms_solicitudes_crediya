@@ -1,10 +1,11 @@
 package co.com.crediya.model.state.enums;
 
-import co.com.crediya.model.loantype.enums.LoanTypeEnum;
+import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.Optional;
 
+@Getter
 public enum StateEnum {
 
     PENDIENTE_REVISION(1, "PENDIENTE REVISION"),

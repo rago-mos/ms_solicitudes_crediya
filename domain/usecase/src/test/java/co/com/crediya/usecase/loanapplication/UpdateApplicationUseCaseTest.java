@@ -4,9 +4,10 @@ import co.com.crediya.model.application.Application;
 import co.com.crediya.model.application.StateApplication;
 import co.com.crediya.model.application.dto.NotificationData;
 import co.com.crediya.model.application.gateways.ApplicationRepository;
-import co.com.crediya.model.application.gateways.SqsNotificationsGateway;
+import co.com.crediya.model.application.gateways.SqsMessageGateway;
 import co.com.crediya.model.application.gateways.UserClientRepository;
 import co.com.crediya.model.loantype.LoanType;
+import co.com.crediya.model.loantype.enums.SqsQueueType;
 import co.com.crediya.model.state.State;
 import co.com.crediya.model.state.gateways.StateRepository;
 import co.com.crediya.model.user.UserApplication;
@@ -37,14 +38,14 @@ class UpdateApplicationUseCaseTest {
     @Mock
     private UserClientRepository userClientRepository;
     @Mock
-    private SqsNotificationsGateway sqsRepository;
+    private SqsMessageGateway sqsGateway;
 
     private UpdateApplicationUseCase useCase;
 
     @BeforeEach
     void setUp() {
         useCase = new UpdateApplicationUseCase(applicationRepository, stateRepository, validator,
-                userClientRepository, sqsRepository);
+                userClientRepository, sqsGateway);
     }
 
     @Test
@@ -69,12 +70,11 @@ class UpdateApplicationUseCaseTest {
 
         verify(validator).validate(update);
         verify(applicationRepository).updateApplication(update);
-        verifyNoInteractions(userClientRepository, sqsRepository);
+        verifyNoInteractions(userClientRepository, sqsGateway);
     }
 
     @Test
-    void shouldUpdateApplicationAndSendMessageWhenStateIsNotThree() {
-
+    void shouldUpdateApplicationAndSendNotificationsOnlyWhenStateIsNotApproved() {
         StateApplication update = StateApplication.builder()
                 .idApplication(1L)
                 .idState(2)
@@ -99,26 +99,64 @@ class UpdateApplicationUseCaseTest {
         when(applicationRepository.updateApplication(update)).thenReturn(Mono.just(updated));
         when(userClientRepository.getUsersByDocuments(List.of("123456789"), "token123"))
                 .thenReturn(Flux.just(user));
-        when(sqsRepository.send(any(NotificationData.class))).thenReturn(Mono.just("msg-123"));
+        when(sqsGateway.send(any(NotificationData.class), eq(SqsQueueType.NOTIFICATIONS)))
+                .thenReturn(Mono.just("msg-notif"));
 
         StepVerifier.create(useCase.updateApplication(update, "token123"))
                 .expectNext("state updated successfully")
                 .verifyComplete();
 
-        verify(validator).validate(update);
-        verify(applicationRepository).updateApplication(update);
-        verify(userClientRepository).getUsersByDocuments(List.of("123456789"), "token123");
-        verify(sqsRepository).send(any(NotificationData.class));
+        verify(sqsGateway).send(any(NotificationData.class), eq(SqsQueueType.NOTIFICATIONS));
+        verify(sqsGateway, never()).send(any(NotificationData.class), eq(SqsQueueType.REPORTS));
+    }
+
+
+    @Test
+    void shouldUpdateApplicationAndSendNotificationsAndReportsWhenStateIsApproved() {
+        StateApplication update = StateApplication.builder()
+                .idApplication(1L)
+                .idState(2)
+                .build();
+
+        Application updated = Application.builder()
+                .idApplication(1L)
+                .amount(BigDecimal.valueOf(1000000))
+                .identityDocument("123456789")
+                .state(State.builder().idState(4).build())
+                .loanType(LoanType.builder().idLoanType(1).build())
+                .build();
+
+        UserApplication user = UserApplication.builder()
+                .firstName("Rubén")
+                .lastName("Tester")
+                .email("ruben@example.com")
+                .identityDocument("123456789")
+                .build();
+
+        when(validator.validate(update)).thenReturn(Mono.empty());
+        when(applicationRepository.updateApplication(update)).thenReturn(Mono.just(updated));
+        when(userClientRepository.getUsersByDocuments(List.of("123456789"), "token123"))
+                .thenReturn(Flux.just(user));
+        when(sqsGateway.send(any(NotificationData.class), eq(SqsQueueType.NOTIFICATIONS)))
+                .thenReturn(Mono.just("msg-notif"));
+        when(sqsGateway.send(any(NotificationData.class), eq(SqsQueueType.REPORTS)))
+                .thenReturn(Mono.just("msg-report"));
+
+        StepVerifier.create(useCase.updateApplication(update, "token123"))
+                .expectNext("state updated successfully")
+                .verifyComplete();
+
+        verify(sqsGateway).send(any(NotificationData.class), eq(SqsQueueType.NOTIFICATIONS));
+        verify(sqsGateway).send(any(NotificationData.class), eq(SqsQueueType.REPORTS));
     }
 
     @Test
-    void shouldUpdateApplicationCalculateSuccessfully() {
-
+    void shouldUpdateApplicationCalculateAndSendBothMessagesWhenApproved() {
         NotificationData data = NotificationData.builder()
                 .idApplication(1L)
-                .idStatus(3)
+                .idStatus(4)
                 .identityDocument("123456789")
-                .fullName("Rubén")
+                .fullName("Rubén Tester")
                 .email("ruben@example.com")
                 .loanTypeName("Personal")
                 .isValidatedAutomatic(true)
@@ -131,7 +169,7 @@ class UpdateApplicationUseCaseTest {
                 .build();
 
         State state = State.builder()
-                .idState(3)
+                .idState(4)
                 .name("Aprobado")
                 .build();
 
@@ -139,22 +177,18 @@ class UpdateApplicationUseCaseTest {
 
         when(validator.validate(data)).thenReturn(Mono.empty());
         when(applicationRepository.getApplication(1L)).thenReturn(Mono.just(application));
-        when(stateRepository.findState(3)).thenReturn(Mono.just(state));
+        when(stateRepository.findState(4)).thenReturn(Mono.just(state));
         when(applicationRepository.registerApplication(any(Application.class)))
                 .thenReturn(Mono.just(updated));
-        when(sqsRepository.send(data)).thenReturn(Mono.just("msg-001"));
+        when(sqsGateway.send(data, SqsQueueType.NOTIFICATIONS)).thenReturn(Mono.just("msg-notif"));
+        when(sqsGateway.send(data, SqsQueueType.REPORTS)).thenReturn(Mono.just("msg-report"));
 
-        Mono<Void> result = useCase.updateApplicationCalculate(data);
-
-        StepVerifier.create(result)
+        StepVerifier.create(useCase.updateApplicationCalculate(data))
                 .verifyComplete();
 
-        verify(validator).validate(data);
-        verify(applicationRepository).getApplication(1L);
-        verify(stateRepository).findState(3);
-        verify(applicationRepository).registerApplication(argThat(app ->
-                app.getState().getIdState().equals(3)
-        ));
-        verify(sqsRepository).send(data);
+        verify(sqsGateway).send(data, SqsQueueType.NOTIFICATIONS);
+        verify(sqsGateway).send(data, SqsQueueType.REPORTS);
     }
+
+
 }

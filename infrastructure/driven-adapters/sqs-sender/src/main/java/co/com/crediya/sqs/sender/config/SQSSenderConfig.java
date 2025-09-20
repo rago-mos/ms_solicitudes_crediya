@@ -21,7 +21,7 @@ import java.net.URI;
 public class SQSSenderConfig {
 
     @Bean
-    public SqsAsyncClient configSqs(SQSSenderNotificationsProperties properties, MetricPublisher publisher) {
+    public SqsAsyncClient configSqs(SQSSenderProperties properties, MetricPublisher publisher) {
         return SqsAsyncClient.builder()
                 .endpointOverride(resolveEndpoint(properties))
                 .region(Region.of(properties.region()))
@@ -41,7 +41,7 @@ public class SQSSenderConfig {
                 .build();
     }
 
-    private URI resolveEndpoint(SQSSenderNotificationsProperties properties) {
+    private URI resolveEndpoint(SQSSenderProperties properties) {
         if (properties.endpoint() != null) {
             return URI.create(properties.endpoint());
         }

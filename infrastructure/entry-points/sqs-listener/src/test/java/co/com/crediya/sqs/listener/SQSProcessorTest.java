@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 import software.amazon.awssdk.services.sqs.model.Message;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
@@ -61,7 +62,7 @@ class SQSProcessorTest {
                 .build();
 
         CalculateCapacityResponse response = new CalculateCapacityResponse(
-                1001L, 2, "Aprobado", "Consumo", List.of(), "Rubén", "ruben@example.com", "123456789"
+                1001L, 2, "Aprobado", "Consumo", List.of(), "Rubén", "ruben@example.com", "123456789", new BigDecimal("500000")
         );
 
         NotificationData notificationData = NotificationData.builder()
