@@ -4,9 +4,10 @@ import co.com.crediya.model.application.Application;
 import co.com.crediya.model.application.dto.ApplicationAprovedView;
 import co.com.crediya.model.application.dto.ApplicationValidationData;
 import co.com.crediya.model.application.gateways.ApplicationRepository;
-import co.com.crediya.model.application.gateways.SqsCapacityGateway;
+import co.com.crediya.model.application.gateways.SqsMessageGateway;
 import co.com.crediya.model.application.gateways.UserClientRepository;
 import co.com.crediya.model.loantype.LoanType;
+import co.com.crediya.model.loantype.enums.SqsQueueType;
 import co.com.crediya.model.loantype.gateways.LoanTypeRepository;
 import co.com.crediya.model.state.State;
 import co.com.crediya.model.state.gateways.StateRepository;
@@ -31,7 +32,7 @@ class LoanApplicationUseCaseTest {
     private LoanTypeRepository loanTypeRepository;
     private LoanApplicationValidator validator;
     private UserClientRepository userClientRepository;
-    private SqsCapacityGateway sqsCapacityGateway;
+    private SqsMessageGateway sqsMessageGateway;
 
     private LoanApplicationUseCase useCase;
 
@@ -42,10 +43,10 @@ class LoanApplicationUseCaseTest {
         loanTypeRepository = mock(LoanTypeRepository.class);
         validator = mock(LoanApplicationValidator.class);
         userClientRepository = mock(UserClientRepository.class);
-        sqsCapacityGateway = mock(SqsCapacityGateway.class);
+        sqsMessageGateway = mock(SqsMessageGateway.class);
 
         useCase = new LoanApplicationUseCase(applicationRepository, stateRepository, loanTypeRepository, validator,
-                userClientRepository, sqsCapacityGateway);
+                userClientRepository, sqsMessageGateway);
     }
 
     @Test
@@ -96,7 +97,7 @@ class LoanApplicationUseCaseTest {
                 .thenReturn(Flux.just(user));
         when(applicationRepository.getApplicationsAproved("123456789"))
                 .thenReturn(Flux.just(previousView));
-        when(sqsCapacityGateway.send(any(ApplicationValidationData.class)))
+        when(sqsMessageGateway.send(any(ApplicationValidationData.class), eq(SqsQueueType.CAPACITY)))
                 .thenReturn(Mono.just("msg-001"));
 
         Mono<Application> result = useCase.registerLoanApplication(application, "shjdfhks");
@@ -152,7 +153,7 @@ class LoanApplicationUseCaseTest {
         when(loanTypeRepository.findLoanType(2)).thenReturn(Mono.just(enriched.getLoanType()));
         when(userClientRepository.getUsersByDocuments(List.of("123456789"), token)).thenReturn(Flux.just(user));
         when(applicationRepository.getApplicationsAproved("123456789")).thenReturn(Flux.just(previousView));
-        when(sqsCapacityGateway.send(any(ApplicationValidationData.class))).thenReturn(Mono.just("msg-001"));
+        when(sqsMessageGateway.send(any(ApplicationValidationData.class), eq(SqsQueueType.CAPACITY))).thenReturn(Mono.just("msg-001"));
 
         Mono<String> result = useCase.calculateCapacityApplication(application, token);
 
@@ -166,6 +167,6 @@ class LoanApplicationUseCaseTest {
         verify(loanTypeRepository).findLoanType(2);
         verify(userClientRepository).getUsersByDocuments(List.of("123456789"), token);
         verify(applicationRepository).getApplicationsAproved("123456789");
-        verify(sqsCapacityGateway).send(any(ApplicationValidationData.class));
+        verify(sqsMessageGateway).send(any(ApplicationValidationData.class), eq(SqsQueueType.CAPACITY));
     }
 }

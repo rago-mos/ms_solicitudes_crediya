@@ -42,7 +42,8 @@ class SqsMapperTest {
                 List.of(planDTO),
                 "Rubén Darío",
                 "ruben@example.com",
-                "1234567890"
+                "1234567890",
+                new BigDecimal("500000")
         );
 
         NotificationData result = mapper.toNotificationData(response);
@@ -77,7 +78,8 @@ class SqsMapperTest {
                 null,
                 "Ana María",
                 "ana@example.com",
-                "9876543210"
+                "9876543210",
+                new BigDecimal("500000")
         );
 
         NotificationData result = mapper.toNotificationData(response);
