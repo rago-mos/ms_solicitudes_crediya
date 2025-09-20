@@ -47,14 +47,17 @@ adapter:
     timeout: 5000
     url: "${REST_CONSUMER_HOST:http://localhost:8001}"
   sqs:
-    notifications:
+    general:
       region: "${AWS_REGION}"
-      queueUrl: "${AWS_SQS_QUEUEURL_NOTIFICATIONS}"
       endpoint: "${AWS_SQS_ENDPOINT}"
-    capacity:
-      region: "${AWS_REGION}"
-      queueUrl: "${AWS_SQS_QUEUEURL_CAPACITY}"
-      endpoint: "${AWS_SQS_ENDPOINT}"
+    queues:
+      notifications:
+        queueUrl: "${AWS_SQS_QUEUEURL_NOTIFICATIONS}"
+      capacity:
+        queueUrl: "${AWS_SQS_QUEUEURL_CAPACITY}"
+      reports:
+        queueUrl: "${AWS_SQS_QUEUEURL_REPORTS}"
+
 resilience4j:
   circuitbreaker:
     instances:

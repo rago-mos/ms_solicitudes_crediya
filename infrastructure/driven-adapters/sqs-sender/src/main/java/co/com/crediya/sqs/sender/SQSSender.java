@@ -1,8 +1,9 @@
 package co.com.crediya.sqs.sender;
 
-import co.com.crediya.model.application.gateways.SqsCapacityGateway;
+import co.com.crediya.model.application.gateways.SqsMessageGateway;
 import co.com.crediya.model.exception.SqsMessageException;
-import co.com.crediya.sqs.sender.config.SQSSenderDebtCapacityProperties;
+import co.com.crediya.model.loantype.enums.SqsQueueType;
+import co.com.crediya.sqs.sender.config.SqsQueuesProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -13,26 +14,27 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 
-import static co.com.crediya.model.utils.Constant.*;
+import static co.com.crediya.model.utils.Constant.ERROR_JSON_PROCESSING;
+import static co.com.crediya.model.utils.Constant.LOG_DEBUG_SQS_SEND;
 
 @Service
 @Log4j2
 @RequiredArgsConstructor
-public class SQSSenderDebtCapacity implements SqsCapacityGateway {
+public class SQSSender implements SqsMessageGateway {
 
-    private final SQSSenderDebtCapacityProperties properties;
+    private final SqsQueuesProperties properties;
     private final SqsAsyncClient client;
     private final ObjectMapper objectMapper;
 
     @Override
-    public <T> Mono<String> send(T message) {
+    public <T> Mono<String> send(T message, SqsQueueType type) {
 
         return Mono.fromCallable(() -> objectMapper.writeValueAsString(message))
                 .onErrorMap(JsonProcessingException.class,
                         e -> new SqsMessageException(ERROR_JSON_PROCESSING))
                 .flatMap(messageBody -> Mono.just(
                         SendMessageRequest.builder()
-                                .queueUrl(properties.queueUrl())
+                                .queueUrl(properties.getQueueUrl(type))
                                 .messageBody(messageBody)
                                 .build())
                 )

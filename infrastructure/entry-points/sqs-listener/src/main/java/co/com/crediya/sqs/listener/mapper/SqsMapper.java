@@ -23,6 +23,7 @@ public class SqsMapper {
                 .loanTypeName(response.loanType())
                 .paymentPlans(toPaymentPlans(response.plan()))
                 .isValidatedAutomatic(true)
+                .amount(response.amount())
                 .build();
     }
 

@@ -99,7 +99,8 @@ tasks.register('jacocoMergedReport', JacocoReport) {
         fileTree(dir: it, exclude: [
                 '/co/com/crediya/metrics/aws',
                 '/co/com/crediya/security/provider',
-                '/co/com/crediya/sqs/listener/helper'
+                '/co/com/crediya/sqs/listener/helper',
+                '/co/com/crediya/MainApplication.class'
         ])
     }))
     reports {

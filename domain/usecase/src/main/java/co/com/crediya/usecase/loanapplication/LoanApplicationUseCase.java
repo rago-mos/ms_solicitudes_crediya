@@ -3,9 +3,10 @@ package co.com.crediya.usecase.loanapplication;
 import co.com.crediya.model.application.Application;
 import co.com.crediya.model.application.dto.*;
 import co.com.crediya.model.application.gateways.ApplicationRepository;
-import co.com.crediya.model.application.gateways.SqsCapacityGateway;
+import co.com.crediya.model.application.gateways.SqsMessageGateway;
 import co.com.crediya.model.application.gateways.UserClientRepository;
 import co.com.crediya.model.loantype.LoanType;
+import co.com.crediya.model.loantype.enums.SqsQueueType;
 import co.com.crediya.model.loantype.gateways.LoanTypeRepository;
 import co.com.crediya.model.state.State;
 import co.com.crediya.model.state.gateways.StateRepository;
@@ -27,7 +28,7 @@ public class LoanApplicationUseCase implements ILoanApplicationUseCase {
     private final LoanTypeRepository loanTypeRepository;
     private final LoanApplicationValidator validator;
     private final UserClientRepository userClientRepository;
-    private final SqsCapacityGateway sqsCapacityGateway;
+    private final SqsMessageGateway sqsMessageGateway;
 
 
     @Override
@@ -84,7 +85,7 @@ public class LoanApplicationUseCase implements ILoanApplicationUseCase {
                                 .loanTypeName(application.getLoanType().getName())
                                 .build())
                         .build()))
-                .flatMap(sqsCapacityGateway::send)
+                .flatMap(message -> sqsMessageGateway.send(message, SqsQueueType.CAPACITY))
                 .thenReturn(application);
     }
 }

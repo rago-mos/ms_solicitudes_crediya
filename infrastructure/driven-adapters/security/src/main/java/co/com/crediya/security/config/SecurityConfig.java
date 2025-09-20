@@ -29,7 +29,8 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/webjars/**",
-                                "/swagger-resources/**").permitAll()
+                                "/swagger-resources/**",
+                                "/actuator/health").permitAll()
                         .anyExchange().authenticated())
                 .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
                 .exceptionHandling(handling -> handling

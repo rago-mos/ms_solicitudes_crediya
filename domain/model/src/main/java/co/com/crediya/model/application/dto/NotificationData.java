@@ -1,6 +1,8 @@
 package co.com.crediya.model.application.dto;
 
 import lombok.*;
+
+import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
@@ -19,5 +21,6 @@ public class NotificationData {
     private String loanTypeName;
     List<PaymentPlan> paymentPlans;
     private Boolean isValidatedAutomatic;
+    private BigDecimal amount;
 
 }
