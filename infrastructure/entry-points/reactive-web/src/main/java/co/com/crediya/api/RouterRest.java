@@ -15,8 +15,8 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 @Configuration
 public class RouterRest {
 
-    private static final String REGISTER_APPLICATION_LOAN = "/api/v1/solicitud";
-    private static final String DEBT_CAPACITY = "/api/v1/calcular-capacidad";
+    private static final String REGISTER_APPLICATION_LOAN = "/api/v1/loans/solicitud";
+    private static final String DEBT_CAPACITY = "/api/v1/loans/calcular-capacidad";
 
     @Bean
     @RouterOperations({
